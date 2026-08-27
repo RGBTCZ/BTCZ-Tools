@@ -11,6 +11,8 @@ from app.utils.mining_calc import coins_per_day
 from config.config import POOLS
 from modules.base_module import BaseModule
 
+MEDALS = ["🥇", "🥈", "🥉"]
+
 
 class PoolExplorerModule(BaseModule):
     key = "pools"
@@ -66,12 +68,25 @@ class PoolExplorerModule(BaseModule):
             hashrate = 0.0
         unit = saved.get("unit", "KSol/s")
         hashrate_solps = hashrate * SOL_UNITS.get(unit, 1)
-        expected_gross = None
+        gross = None
         if hashrate_solps > 0:
-            expected_gross = coins_per_day(
-                hashrate_solps, net.network_hashps(), net.block_time, net.miner_reward
-            )
-        return {"hashrate_solps": hashrate_solps, "expected_gross": expected_gross}
+            gross = coins_per_day(hashrate_solps, net.network_hashps(), net.block_time, net.miner_reward)
+
+        rows = []
+        for pool in POOLS:
+            net_day = None
+            if gross is not None and pool["fee"] is not None:
+                net_day = gross * (1 - pool["fee"] / 100.0)
+            rows.append({
+                "name": pool["name"],
+                "fee": pool["fee"],
+                "scheme": pool["scheme"],
+                "active": pool.get("active", False),
+                "net": net_day,
+            })
+        rows.sort(key=lambda r: (0 if r["active"] else 1, -(r["net"] if r["net"] is not None else -1)))
+        active_count = sum(1 for r in rows if r["active"])
+        return {"hashrate_solps": hashrate_solps, "expected_gross": gross, "rows": rows, "active_count": active_count}
 
     def _header_row(self, parent, cols):
         for i, (key, w) in enumerate(cols):
@@ -116,8 +131,7 @@ class PoolExplorerModule(BaseModule):
         row += 1
         if reco["expected_gross"] is not None:
             ctk.CTkLabel(self.body, text=t("pool.before_fees", v=format_btcz(reco["expected_gross"], 2)),
-                         font=font(20, "bold"), text_color=COLORS["accent"], anchor="w").grid(
-                row=row, column=0, sticky="w")
+                         font=font(20, "bold"), text_color=COLORS["accent"], anchor="w").grid(row=row, column=0, sticky="w")
             row += 1
             ctk.CTkLabel(self.body, text=t("pool.your_hashrate", h=format_hashrate(reco["hashrate_solps"])),
                          font=font(11), text_color=COLORS["muted"], anchor="w").grid(row=row, column=0, sticky="w")
@@ -132,21 +146,29 @@ class PoolExplorerModule(BaseModule):
         known.grid(row=row, column=0, sticky="ew")
         row += 1
         self._header_row(known, [("pool.col_pool", 3), ("pool.col_fee", 1),
-                                 ("pool.col_scheme", 2), ("pool.col_status", 2)])
-        active = {p.name for p in data["pools"] if not p.is_solo}
-        for i, pool in enumerate(POOLS, start=1):
-            ctk.CTkLabel(known, text=pool["name"], font=font(13), text_color=COLORS["text"], anchor="w").grid(
+                                 ("pool.col_scheme", 2), ("pool.col_status", 1), ("pool.col_net", 2)])
+        for i, r in enumerate(reco["rows"], start=1):
+            medal = MEDALS[i - 1] if r["active"] and (i - 1) < len(MEDALS) and (i - 1) < reco["active_count"] else ""
+            label = f"{medal}  {r['name']}" if medal else r["name"]
+            ctk.CTkLabel(known, text=label, font=font(13), text_color=COLORS["text"], anchor="w").grid(
                 row=i, column=0, padx=8, pady=4, sticky="w")
-            fee_txt = f"{pool['fee']:.2f} %" if pool["fee"] is not None else t("pool.unknown")
+            fee_txt = f"{r['fee']:.2f} %" if r["fee"] is not None else t("pool.unknown")
             ctk.CTkLabel(known, text=fee_txt, font=font(12), text_color=COLORS["muted"], anchor="w").grid(
                 row=i, column=1, padx=8, pady=4, sticky="w")
-            ctk.CTkLabel(known, text=pool["scheme"] or t("pool.unknown"), font=font(12), text_color=COLORS["muted"], anchor="w").grid(
+            ctk.CTkLabel(known, text=r["scheme"] or t("pool.unknown"), font=font(12), text_color=COLORS["muted"], anchor="w").grid(
                 row=i, column=2, padx=8, pady=4, sticky="w")
-            is_active = pool["name"] in active
-            status_txt = t("pool.active") if is_active else t("pool.quiet")
-            status_color = COLORS["ok"] if is_active else COLORS["muted"]
+            status_txt = t("pool.active") if r["active"] else t("pool.quiet")
+            status_color = COLORS["ok"] if r["active"] else COLORS["muted"]
             ctk.CTkLabel(known, text=status_txt, font=font(12, "bold"), text_color=status_color, anchor="w").grid(
                 row=i, column=3, padx=8, pady=4, sticky="w")
+            if r["net"] is not None:
+                net_txt = f"{format_btcz(r['net'], 2)} BTCZ"
+                net_color = COLORS["accent"] if r["active"] else COLORS["muted"]
+            else:
+                net_txt = t("pool.unknown")
+                net_color = COLORS["muted"]
+            ctk.CTkLabel(known, text=net_txt, font=font(12, "bold"), text_color=net_color, anchor="w").grid(
+                row=i, column=4, padx=8, pady=4, sticky="w")
 
         ctk.CTkLabel(self.body, text=t("pool.note"), font=font(11), text_color=COLORS["muted"],
                      wraplength=760, justify="left", anchor="w").grid(row=row, column=0, sticky="w", pady=(14, 6))
