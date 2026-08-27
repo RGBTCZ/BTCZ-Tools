@@ -18,6 +18,7 @@ CACHE_TTL = {
     "market": 60,
     "address": 30,
     "address_txs": 45,
+    "pools": 60,
 }
 
 HALVING_INTERVAL = 840000
@@ -29,7 +30,17 @@ MINING_THRESHOLD = 20
 LIMIT_RECENT = 200
 LIMIT_FULL = 100
 
-POOLS = []
+POOL_WINDOW = 100
+
+POOLS = [
+    {"name": "zpool", "url": "https://zpool.ca", "fee": None, "scheme": "auto-exchange", "tags": ["zpool"]},
+    {"name": "HimPool", "url": "https://himpool.com", "fee": None, "scheme": "", "tags": ["himpool"]},
+    {"name": "SW Groupe", "url": "https://swgroupe.fr", "fee": None, "scheme": "", "tags": ["swgroupe", "swgroup"]},
+    {"name": "2Mars", "url": "https://btcz.2mars.biz", "fee": None, "scheme": "", "tags": ["2mars"]},
+    {"name": "Dark Fiber Mines", "url": "https://btcz.darkfibermines.com", "fee": None, "scheme": "", "tags": ["darkfiber", "dfm"]},
+    {"name": "ZeroPool", "url": "https://zeropool.io", "fee": None, "scheme": "", "tags": ["zeropool"]},
+    {"name": "PCMining", "url": "http://btcz.pcmining.xyz", "fee": None, "scheme": "", "tags": ["pcmining"]},
+]
 
 APP_NAME = "BTCZ Tools"
 APP_VERSION = "0.1.0"

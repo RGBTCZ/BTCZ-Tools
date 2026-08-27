@@ -15,7 +15,7 @@ Built around a **shared data layer**: a piece of network data fetched once is re
 | 📊 Dashboard | working | Live network + market overview |
 | ⛏️ Mining Tracker | working | Rewards received on a t1 address, per day or date range, CSV export |
 | 💰 Profitability | working | Revenue, cost, profit, price scenarios, break-even and hardware ROI |
-| 🌊 Pool Explorer | Phase 3 | Pool comparison |
+| 🌊 Pool Explorer | working | On-chain pool distribution (`minedBy`), expected earnings for your hashrate, known-pools directory |
 | 🌐 Network Explorer | working | Network stats + latest blocks (with miner) |
 
 ## Architecture

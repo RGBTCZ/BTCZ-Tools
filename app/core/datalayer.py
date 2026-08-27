@@ -5,7 +5,7 @@ from app.core.cache import TTLCache
 from app.core.errors import DataError, NetworkError
 from app.core.i18n import t
 from app.core.logger import get_logger
-from app.models.models import AddressStats, Block, NetworkStats, Transaction
+from app.models.models import AddressStats, Block, NetworkStats, PoolStat, Transaction
 from app.utils.format import block_reward, compute_nethash, miner_reward
 from config.config import (
     BLOCK_TIME_TARGET,
@@ -15,6 +15,8 @@ from config.config import (
     LIMIT_FULL,
     LIMIT_RECENT,
     MINING_THRESHOLD,
+    POOL_WINDOW,
+    POOLS,
 )
 
 log = get_logger("datalayer")
@@ -233,6 +235,78 @@ class BTCZDataLayer:
             if vin.get("addr") == address:
                 sent += float(vin.get("value", 0) or 0)
         return received - sent
+
+    def _match_pool(self, tag):
+        low = tag.lower()
+        for pool in POOLS:
+            for alias in pool.get("tags", []):
+                if alias == low or alias in low:
+                    return pool
+        return None
+
+    def get_pool_stats(self, window=POOL_WINDOW):
+        key = f"pools:{window}"
+        cached = self.cache.get(key)
+        if cached:
+            return cached
+
+        net = self.get_network_stats()
+        raw = self.insight.get_blocks(window)
+        total = len(raw) or 1
+
+        named = {}
+        solo = {"blocks": 0, "last": 0, "addrs": set()}
+        for block in raw:
+            mined_by = (block.get("minedBy") or "").strip()
+            btime = int(block.get("time", 0) or 0)
+            if not mined_by:
+                continue
+            if mined_by.startswith("t1") or mined_by.startswith("t3"):
+                solo["blocks"] += 1
+                solo["addrs"].add(mined_by)
+                solo["last"] = max(solo["last"], btime)
+            else:
+                entry = named.setdefault(mined_by, {"blocks": 0, "last": 0})
+                entry["blocks"] += 1
+                entry["last"] = max(entry["last"], btime)
+
+        network_hashps = net.network_hashps()
+        stats = []
+        for name, entry in named.items():
+            share = entry["blocks"] / total
+            pool = self._match_pool(name)
+            stats.append(
+                PoolStat(
+                    name=pool["name"] if pool else name,
+                    blocks_found=entry["blocks"],
+                    share=share,
+                    est_hashps=share * network_hashps,
+                    last_time=entry["last"],
+                    fee=pool["fee"] if pool else None,
+                    scheme=pool["scheme"] if pool else "",
+                    url=pool["url"] if pool else "",
+                    matched=pool is not None,
+                )
+            )
+
+        if solo["blocks"] > 0:
+            share = solo["blocks"] / total
+            stats.append(
+                PoolStat(
+                    name="Solo miners",
+                    blocks_found=solo["blocks"],
+                    share=share,
+                    est_hashps=share * network_hashps,
+                    last_time=solo["last"],
+                    miners=len(solo["addrs"]),
+                    is_solo=True,
+                )
+            )
+
+        stats.sort(key=lambda s: s.blocks_found, reverse=True)
+        result = {"window": total, "network_hashps": network_hashps, "pools": stats}
+        self.cache.set(key, result, CACHE_TTL["pools"])
+        return result
 
     def get_market(self):
         cached = self.cache.get("market")

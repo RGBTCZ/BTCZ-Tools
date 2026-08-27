@@ -60,6 +60,21 @@ class MarketData:
 
 
 @dataclass
+class PoolStat:
+    name: str = ""
+    blocks_found: int = 0
+    share: float = 0.0
+    est_hashps: float = 0.0
+    last_time: int = 0
+    miners: int = 1
+    is_solo: bool = False
+    fee: Optional[float] = None
+    scheme: str = ""
+    url: str = ""
+    matched: bool = False
+
+
+@dataclass
 class DailyResult:
     date: str = ""
     total: float = 0.0
