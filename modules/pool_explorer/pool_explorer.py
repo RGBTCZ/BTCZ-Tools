@@ -81,6 +81,7 @@ class PoolExplorerModule(BaseModule):
                 "name": pool["name"],
                 "fee": pool["fee"],
                 "scheme": pool["scheme"],
+                "min_pay": pool.get("min_pay"),
                 "active": pool.get("active", False),
                 "net": net_day,
             })
@@ -145,8 +146,8 @@ class PoolExplorerModule(BaseModule):
         known = ctk.CTkFrame(self.body, fg_color="transparent")
         known.grid(row=row, column=0, sticky="ew")
         row += 1
-        self._header_row(known, [("pool.col_pool", 3), ("pool.col_fee", 1),
-                                 ("pool.col_scheme", 2), ("pool.col_status", 1), ("pool.col_net", 2)])
+        self._header_row(known, [("pool.col_pool", 3), ("pool.col_fee", 1), ("pool.col_scheme", 2),
+                                 ("pool.col_minpay", 1), ("pool.col_status", 1), ("pool.col_net", 2)])
         for i, r in enumerate(reco["rows"], start=1):
             medal = MEDALS[i - 1] if r["active"] and (i - 1) < len(MEDALS) and (i - 1) < reco["active_count"] else ""
             label = f"{medal}  {r['name']}" if medal else r["name"]
@@ -157,10 +158,13 @@ class PoolExplorerModule(BaseModule):
                 row=i, column=1, padx=8, pady=4, sticky="w")
             ctk.CTkLabel(known, text=r["scheme"] or t("pool.unknown"), font=font(12), text_color=COLORS["muted"], anchor="w").grid(
                 row=i, column=2, padx=8, pady=4, sticky="w")
+            minpay_txt = f"{r['min_pay']:g}" if r["min_pay"] is not None else t("pool.unknown")
+            ctk.CTkLabel(known, text=minpay_txt, font=font(12), text_color=COLORS["muted"], anchor="w").grid(
+                row=i, column=3, padx=8, pady=4, sticky="w")
             status_txt = t("pool.active") if r["active"] else t("pool.quiet")
             status_color = COLORS["ok"] if r["active"] else COLORS["muted"]
             ctk.CTkLabel(known, text=status_txt, font=font(12, "bold"), text_color=status_color, anchor="w").grid(
-                row=i, column=3, padx=8, pady=4, sticky="w")
+                row=i, column=4, padx=8, pady=4, sticky="w")
             if r["net"] is not None:
                 net_txt = f"{format_btcz(r['net'], 2)} BTCZ"
                 net_color = COLORS["accent"] if r["active"] else COLORS["muted"]
@@ -168,7 +172,7 @@ class PoolExplorerModule(BaseModule):
                 net_txt = t("pool.unknown")
                 net_color = COLORS["muted"]
             ctk.CTkLabel(known, text=net_txt, font=font(12, "bold"), text_color=net_color, anchor="w").grid(
-                row=i, column=4, padx=8, pady=4, sticky="w")
+                row=i, column=5, padx=8, pady=4, sticky="w")
 
         ctk.CTkLabel(self.body, text=t("pool.note"), font=font(11), text_color=COLORS["muted"],
                      wraplength=760, justify="left", anchor="w").grid(row=row, column=0, sticky="w", pady=(14, 6))
