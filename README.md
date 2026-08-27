@@ -15,7 +15,7 @@ Built around a **shared data layer**: a piece of network data fetched once is re
 | 📊 Dashboard | working | Live network + market overview |
 | ⛏️ Mining Tracker | working | Rewards received on a t1 address, per day or date range, CSV export |
 | 💰 Profitability | working | Revenue, cost, profit, price scenarios, break-even and hardware ROI |
-| 🌊 Pool Explorer | working | On-chain pool distribution (`minedBy`), expected earnings for your hashrate, known-pools directory |
+| 🌊 Pool Explorer | working | On-chain pool distribution (`minedBy`), live z-nomp pool stats, expected earnings for your hashrate, known-pools directory |
 | 🌐 Network Explorer | working | Network stats + latest blocks (with miner) |
 
 ## Architecture
@@ -39,6 +39,7 @@ BTCZTools/
 - **Network / blocks / miner** — `explorer.btcz.rocks` (Insight, `getInfo` + `minedBy`)
 - **Addresses** — `explorer.getbtcz.com` (primary) with `btcz.rocks` as fallback
 - **Price** — CoinGecko (`bitcoinz`, EUR + USD)
+- **Live pool stats** — each pool's own z-nomp API (`/api/stats`): hashrate, miners, workers, blocks (SW Groupe, Dark Fiber Mines)
 
 The data layer automatically fails over to the backup source if the primary one is down.
 

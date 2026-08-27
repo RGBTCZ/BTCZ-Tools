@@ -34,8 +34,8 @@ POOL_WINDOW = 100
 
 POOLS = [
     {"name": "zpool.ca", "url": "https://zpool.ca", "fee": 1.0, "scheme": "PROP", "min_pay": 10, "active": True, "tags": ["zpool"]},
-    {"name": "SW Groupe", "url": "https://swgroupe.fr", "fee": 0.5, "scheme": "PPLNS", "min_pay": None, "active": True, "tags": ["swgroupe", "swgroup"]},
-    {"name": "Dark Fiber Mines", "url": "https://btcz.darkfibermines.com", "fee": 1.0, "scheme": "PROP / SOLO", "min_pay": None, "active": True, "tags": ["darkfiber", "dfm"]},
+    {"name": "SW Groupe", "url": "https://swgroupe.fr", "api_base": "https://swgroupe.fr/api", "fee": 0.5, "scheme": "PPLNS", "min_pay": None, "active": True, "tags": ["swgroupe", "swgroup"]},
+    {"name": "Dark Fiber Mines", "url": "https://btcz.darkfibermines.com", "api_base": "https://btcz.darkfibermines.com/api", "fee": 1.0, "scheme": "PROP / SOLO", "min_pay": None, "active": True, "tags": ["darkfiber", "dfm"]},
     {"name": "HimPool", "url": "https://himpool.com", "fee": 1.0, "scheme": "PPLNS / SOLO 2%", "min_pay": 250, "active": False, "tags": ["himpool"]},
     {"name": "Pooly", "url": "https://pooly.ca", "fee": 1.5, "scheme": "PPLNS", "min_pay": 1, "active": False, "tags": ["pooly"]},
     {"name": "AikaPool", "url": "https://aikapool.com", "fee": 0.5, "scheme": "PROP / SOLO", "min_pay": 0.01, "active": False, "tags": ["aikapool"]},

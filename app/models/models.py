@@ -75,6 +75,18 @@ class PoolStat:
 
 
 @dataclass
+class PoolLive:
+    name: str = ""
+    hashps: float = 0.0
+    miner_count: int = 0
+    worker_count: int = 0
+    blocks_confirmed: int = 0
+    blocks_pending: int = 0
+    fee: Optional[float] = None
+    ok: bool = False
+
+
+@dataclass
 class DailyResult:
     date: str = ""
     total: float = 0.0

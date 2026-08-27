@@ -56,11 +56,16 @@ class PoolExplorerModule(BaseModule):
         except Exception as exc:
             self.status.configure(text=t("pool.unavailable", e=exc))
             return
-        reco = self._build_reco(net)
-        self._render(data, reco)
+        try:
+            live = self.datalayer.get_pool_live()
+        except Exception:
+            live = {}
+        reco = self._build_reco(net, live)
+        self._render(data, reco, live)
         self.status.configure(text=t("st.blocks_count", n=data["window"], s=net.source))
 
-    def _build_reco(self, net):
+    def _build_reco(self, net, live=None):
+        live = live or {}
         saved = settings.get("profitability", {}) or {}
         try:
             hashrate = float(str(saved.get("hashrate", "")).replace(",", ".") or 0)
@@ -77,12 +82,16 @@ class PoolExplorerModule(BaseModule):
             net_day = None
             if gross is not None and pool["fee"] is not None:
                 net_day = gross * (1 - pool["fee"] / 100.0)
+            active = pool.get("active", False)
+            lv = live.get(pool["name"])
+            if lv is not None and lv.ok:
+                active = lv.miner_count > 0
             rows.append({
                 "name": pool["name"],
                 "fee": pool["fee"],
                 "scheme": pool["scheme"],
                 "min_pay": pool.get("min_pay"),
-                "active": pool.get("active", False),
+                "active": active,
                 "net": net_day,
             })
         rows.sort(key=lambda r: (0 if r["active"] else 1, -(r["net"] if r["net"] is not None else -1)))
@@ -96,7 +105,8 @@ class PoolExplorerModule(BaseModule):
                          text_color=COLORS["muted"], anchor="w").grid(
                 row=0, column=i, padx=8, pady=(0, 4), sticky="w")
 
-    def _render(self, data, reco):
+    def _render(self, data, reco, live=None):
+        live = live or {}
         for widget in self.body.winfo_children():
             widget.destroy()
         row = 0
@@ -127,6 +137,32 @@ class PoolExplorerModule(BaseModule):
                 row=i, column=3, padx=8, pady=4, sticky="w")
             ctk.CTkLabel(dist, text=human_age(pool.last_time), font=font(12), text_color=COLORS["muted"], anchor="w").grid(
                 row=i, column=4, padx=8, pady=4, sticky="w")
+
+        SectionTitle(self.body, text=t("pool.live")).grid(row=row, column=0, pady=(18, 4), sticky="w")
+        row += 1
+        live_rows = [lv for lv in live.values() if lv.ok]
+        if live_rows:
+            livef = ctk.CTkFrame(self.body, fg_color="transparent")
+            livef.grid(row=row, column=0, sticky="ew")
+            row += 1
+            self._header_row(livef, [("pool.col_pool", 3), ("pool.col_hashrate", 2),
+                                     ("pool.col_miners", 1), ("pool.col_workers", 1), ("pool.col_confirmed", 1)])
+            live_rows.sort(key=lambda lv: lv.hashps, reverse=True)
+            for i, lv in enumerate(live_rows, start=1):
+                ctk.CTkLabel(livef, text=lv.name, font=font(13, "bold"), text_color=COLORS["accent"], anchor="w").grid(
+                    row=i, column=0, padx=8, pady=4, sticky="w")
+                ctk.CTkLabel(livef, text=format_hashrate(lv.hashps), font=font(12), text_color=COLORS["info"], anchor="w").grid(
+                    row=i, column=1, padx=8, pady=4, sticky="w")
+                ctk.CTkLabel(livef, text=str(lv.miner_count), font=font(12), text_color=COLORS["text"], anchor="w").grid(
+                    row=i, column=2, padx=8, pady=4, sticky="w")
+                ctk.CTkLabel(livef, text=str(lv.worker_count), font=font(12), text_color=COLORS["text"], anchor="w").grid(
+                    row=i, column=3, padx=8, pady=4, sticky="w")
+                ctk.CTkLabel(livef, text=f"{lv.blocks_confirmed:,}", font=font(12), text_color=COLORS["mine"], anchor="w").grid(
+                    row=i, column=4, padx=8, pady=4, sticky="w")
+        else:
+            ctk.CTkLabel(self.body, text=t("pool.live_none"), font=font(12), text_color=COLORS["muted"], anchor="w").grid(
+                row=row, column=0, sticky="w")
+            row += 1
 
         SectionTitle(self.body, text=t("pool.expected")).grid(row=row, column=0, pady=(18, 4), sticky="w")
         row += 1

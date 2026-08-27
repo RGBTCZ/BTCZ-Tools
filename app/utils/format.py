@@ -32,6 +32,16 @@ def format_btcz(value, decimals=8):
     return f"{value:,.{decimals}f}"
 
 
+def parse_hashrate_string(text):
+    try:
+        parts = str(text).strip().split()
+        value = float(parts[0])
+        unit = parts[1] if len(parts) > 1 else "Sol/s"
+        return value * SOL_UNITS.get(unit, 1)
+    except (ValueError, IndexError):
+        return 0.0
+
+
 def format_hashrate(sps):
     units = ["Sol/s", "KSol/s", "MSol/s", "GSol/s", "TSol/s"]
     value = float(sps)

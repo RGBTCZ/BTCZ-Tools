@@ -1,11 +1,12 @@
 from app.api.getbtcz_client import GetbtczClient
 from app.api.insight_client import InsightClient
 from app.api.market_client import MarketClient
+from app.api.nomp_client import NompClient
 from app.core.cache import TTLCache
 from app.core.errors import DataError, NetworkError
 from app.core.i18n import t
 from app.core.logger import get_logger
-from app.models.models import AddressStats, Block, NetworkStats, PoolStat, Transaction
+from app.models.models import AddressStats, Block, NetworkStats, PoolLive, PoolStat, Transaction
 from app.utils.format import block_reward, compute_nethash, miner_reward
 from config.config import (
     BLOCK_TIME_TARGET,
@@ -27,6 +28,7 @@ class BTCZDataLayer:
         self.insight = InsightClient(INSIGHT_PRIMARY)
         self.getbtcz = GetbtczClient(GETBTCZ_BASE)
         self.market = MarketClient()
+        self.nomp = NompClient()
         self.cache = TTLCache()
 
     def get_network_stats(self):
@@ -306,6 +308,23 @@ class BTCZDataLayer:
         stats.sort(key=lambda s: s.blocks_found, reverse=True)
         result = {"window": total, "network_hashps": network_hashps, "pools": stats}
         self.cache.set(key, result, CACHE_TTL["pools"])
+        return result
+
+    def get_pool_live(self):
+        cached = self.cache.get("pool_live")
+        if cached:
+            return cached
+        result = {}
+        for pool in POOLS:
+            api = pool.get("api_base")
+            if not api:
+                continue
+            try:
+                result[pool["name"]] = self.nomp.get_btcz(api, pool["name"])
+            except (NetworkError, DataError) as exc:
+                log.warning("pool live %s failed: %s", pool["name"], exc)
+                result[pool["name"]] = PoolLive(name=pool["name"], ok=False)
+        self.cache.set("pool_live", result, CACHE_TTL["pools"])
         return result
 
     def get_market(self):
