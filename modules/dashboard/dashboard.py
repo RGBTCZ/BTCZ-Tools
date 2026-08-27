@@ -77,7 +77,7 @@ class DashboardModule(BaseModule):
             self.cards["c.block_height"].update_value(f"{net.height:,}")
             self.cards["c.difficulty"].update_value(f"{net.difficulty:,.2f}")
             self.cards["c.net_hashrate"].update_value(
-                format_hashrate(net.computed_hashps), subtitle=t("sub.hashrate_est")
+                format_hashrate(net.network_hashps()), subtitle=t("sub.hashrate_est")
             )
             self.cards["c.block_reward"].update_value(
                 f"{format_btcz(net.block_reward, 0)} BTCZ",

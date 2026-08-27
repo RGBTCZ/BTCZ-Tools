@@ -1,9 +1,4 @@
-import json
-from pathlib import Path
-
-DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-DATA_DIR.mkdir(exist_ok=True)
-SETTINGS_FILE = DATA_DIR / "settings.json"
+from app.core import settings
 
 DEFAULT_LANG = "en"
 LANGUAGES = ["en", "fr", "es", "de"]
@@ -34,8 +29,8 @@ TRANSLATIONS = {
         "c.price_usd": "Price USD",
         "c.change_24h": "24h change",
         "c.market_cap": "Market cap",
-        "sub.hashrate_est": "estimated (difficulty x 2^32 / blocktime)",
-        "sub.est": "estimated",
+        "sub.hashrate_est": "network (node estimate, Sol/s)",
+        "sub.est": "node estimate",
         "sub.to_miner": "{v} to miner",
         "st.loading": "Loading network and market data...",
         "st.loading_net": "Loading network...",
@@ -92,6 +87,32 @@ TRANSLATIONS = {
         "dl.progress": "   -> {n} transactions loaded...",
         "dl.total": "{n} transactions total.",
         "dl.fallback": "getbtcz failed ({e}), switching to btcz.rocks...",
+        "prof.setup": "MINING SETUP",
+        "prof.hashrate": "Hashrate",
+        "prof.power": "Power (W)",
+        "prof.elec": "Electricity (EUR/kWh)",
+        "prof.pool_fee": "Pool fee (%)",
+        "prof.hardware": "Hardware cost (EUR, optional)",
+        "prof.calculate": "Calculate",
+        "prof.network_data": "NETWORK DATA (auto)",
+        "prof.block_time": "Block time",
+        "prof.results": "PROFITABILITY",
+        "prof.per_day": "BTCZ / day",
+        "prof.revenue": "Revenue",
+        "prof.electricity": "Electricity",
+        "prof.pool_fee_line": "Pool fee",
+        "prof.profit": "PROFIT",
+        "prof.day_unit": "/day",
+        "prof.breakeven": "Break-even BTCZ price",
+        "prof.roi": "Hardware ROI",
+        "prof.roi_days": "{d} days",
+        "prof.roi_never": "never (no profit)",
+        "prof.scenarios": "BTCZ PRICE SCENARIOS",
+        "prof.sc_price": "Price EUR",
+        "prof.sc_profit": "Profit/day",
+        "prof.fill": "Enter your setup and press Calculate.",
+        "prof.invalid": "Check your inputs — numbers only.",
+        "prof.current": "current",
         "body.prof": "Phase 2. Uses the Data Layer (difficulty, block reward, network hashrate, price) combined with your hashrate, power draw, electricity price and pool fee to compute revenue, cost, profit, price scenarios and break-even.",
         "body.pools": "Phase 3. Compare pools (fee, hashrate, miners, blocks found, luck, uptime, payout) and recommend the best pool for your hashrate. Possible base: the 'minedBy' attribution already provided by btcz.rocks.",
     },
@@ -114,8 +135,8 @@ TRANSLATIONS = {
         "c.price_usd": "Prix USD",
         "c.change_24h": "Variation 24h",
         "c.market_cap": "Capitalisation",
-        "sub.hashrate_est": "estimé (difficulté x 2^32 / blocktime)",
-        "sub.est": "estimé",
+        "sub.hashrate_est": "réseau (estimation du nœud, Sol/s)",
+        "sub.est": "estimation du nœud",
         "sub.to_miner": "{v} au mineur",
         "st.loading": "Chargement des données réseau et marché...",
         "st.loading_net": "Chargement du réseau...",
@@ -172,6 +193,32 @@ TRANSLATIONS = {
         "dl.progress": "   -> {n} transactions chargées...",
         "dl.total": "{n} transactions au total.",
         "dl.fallback": "getbtcz a échoué ({e}), bascule vers btcz.rocks...",
+        "prof.setup": "CONFIG MINING",
+        "prof.hashrate": "Hashrate",
+        "prof.power": "Consommation (W)",
+        "prof.elec": "Électricité (EUR/kWh)",
+        "prof.pool_fee": "Frais de pool (%)",
+        "prof.hardware": "Coût matériel (EUR, optionnel)",
+        "prof.calculate": "Calculer",
+        "prof.network_data": "DONNÉES RÉSEAU (auto)",
+        "prof.block_time": "Temps de bloc",
+        "prof.results": "RENTABILITÉ",
+        "prof.per_day": "BTCZ / jour",
+        "prof.revenue": "Revenu",
+        "prof.electricity": "Électricité",
+        "prof.pool_fee_line": "Frais de pool",
+        "prof.profit": "PROFIT",
+        "prof.day_unit": "/jour",
+        "prof.breakeven": "Prix BTCZ d'équilibre",
+        "prof.roi": "ROI matériel",
+        "prof.roi_days": "{d} jours",
+        "prof.roi_never": "jamais (pas de profit)",
+        "prof.scenarios": "SCÉNARIOS DE PRIX BTCZ",
+        "prof.sc_price": "Prix EUR",
+        "prof.sc_profit": "Profit/jour",
+        "prof.fill": "Renseigne ta config et clique sur Calculer.",
+        "prof.invalid": "Vérifie tes entrées — chiffres uniquement.",
+        "prof.current": "actuel",
         "body.prof": "Phase 2. Utilise le Data Layer (difficulté, récompense de bloc, hashrate réseau, prix) croisé avec ton hashrate, ta conso, ton prix élec et la pool fee pour calculer revenu, coût, profit, scénarios de prix et break-even.",
         "body.pools": "Phase 3. Comparaison des pools (fee, hashrate, miners, blocs trouvés, luck, uptime, payout) et recommandation de la meilleure pool pour ton hashrate. Base possible : l'attribution 'minedBy' déjà fournie par btcz.rocks.",
     },
@@ -194,8 +241,8 @@ TRANSLATIONS = {
         "c.price_usd": "Precio USD",
         "c.change_24h": "Cambio 24h",
         "c.market_cap": "Capitalización",
-        "sub.hashrate_est": "estimado (dificultad x 2^32 / blocktime)",
-        "sub.est": "estimado",
+        "sub.hashrate_est": "red (estimación del nodo, Sol/s)",
+        "sub.est": "estimación del nodo",
         "sub.to_miner": "{v} al minero",
         "st.loading": "Cargando datos de red y mercado...",
         "st.loading_net": "Cargando red...",
@@ -252,6 +299,32 @@ TRANSLATIONS = {
         "dl.progress": "   -> {n} transacciones cargadas...",
         "dl.total": "{n} transacciones en total.",
         "dl.fallback": "getbtcz falló ({e}), cambiando a btcz.rocks...",
+        "prof.setup": "CONFIG MINING",
+        "prof.hashrate": "Hashrate",
+        "prof.power": "Consumo (W)",
+        "prof.elec": "Electricidad (EUR/kWh)",
+        "prof.pool_fee": "Comisión pool (%)",
+        "prof.hardware": "Coste hardware (EUR, opcional)",
+        "prof.calculate": "Calcular",
+        "prof.network_data": "DATOS DE RED (auto)",
+        "prof.block_time": "Tiempo de bloque",
+        "prof.results": "RENTABILIDAD",
+        "prof.per_day": "BTCZ / día",
+        "prof.revenue": "Ingresos",
+        "prof.electricity": "Electricidad",
+        "prof.pool_fee_line": "Comisión pool",
+        "prof.profit": "BENEFICIO",
+        "prof.day_unit": "/día",
+        "prof.breakeven": "Precio BTCZ de equilibrio",
+        "prof.roi": "ROI hardware",
+        "prof.roi_days": "{d} días",
+        "prof.roi_never": "nunca (sin beneficio)",
+        "prof.scenarios": "ESCENARIOS DE PRECIO BTCZ",
+        "prof.sc_price": "Precio EUR",
+        "prof.sc_profit": "Beneficio/día",
+        "prof.fill": "Introduce tu configuración y pulsa Calcular.",
+        "prof.invalid": "Revisa tus datos — solo números.",
+        "prof.current": "actual",
         "body.prof": "Fase 2. Usa el Data Layer (dificultad, recompensa de bloque, hashrate de red, precio) combinado con tu hashrate, consumo, precio de electricidad y comisión de pool para calcular ingresos, coste, beneficio, escenarios de precio y break-even.",
         "body.pools": "Fase 3. Comparar pools (comisión, hashrate, mineros, bloques encontrados, luck, uptime, pago) y recomendar la mejor pool para tu hashrate. Base posible: la atribución 'minedBy' que ya proporciona btcz.rocks.",
     },
@@ -274,8 +347,8 @@ TRANSLATIONS = {
         "c.price_usd": "Preis USD",
         "c.change_24h": "24h Änderung",
         "c.market_cap": "Marktkapital.",
-        "sub.hashrate_est": "geschätzt (Difficulty x 2^32 / Blockzeit)",
-        "sub.est": "geschätzt",
+        "sub.hashrate_est": "Netzwerk (Node-Schätzung, Sol/s)",
+        "sub.est": "Node-Schätzung",
         "sub.to_miner": "{v} an Miner",
         "st.loading": "Lade Netzwerk- und Marktdaten...",
         "st.loading_net": "Lade Netzwerk...",
@@ -332,6 +405,32 @@ TRANSLATIONS = {
         "dl.progress": "   -> {n} Transaktionen geladen...",
         "dl.total": "{n} Transaktionen insgesamt.",
         "dl.fallback": "getbtcz fehlgeschlagen ({e}), wechsle zu btcz.rocks...",
+        "prof.setup": "MINING-SETUP",
+        "prof.hashrate": "Hashrate",
+        "prof.power": "Verbrauch (W)",
+        "prof.elec": "Strom (EUR/kWh)",
+        "prof.pool_fee": "Pool-Gebühr (%)",
+        "prof.hardware": "Hardware-Kosten (EUR, optional)",
+        "prof.calculate": "Berechnen",
+        "prof.network_data": "NETZWERKDATEN (auto)",
+        "prof.block_time": "Blockzeit",
+        "prof.results": "RENTABILITÄT",
+        "prof.per_day": "BTCZ / Tag",
+        "prof.revenue": "Einnahmen",
+        "prof.electricity": "Strom",
+        "prof.pool_fee_line": "Pool-Gebühr",
+        "prof.profit": "GEWINN",
+        "prof.day_unit": "/Tag",
+        "prof.breakeven": "BTCZ Break-even-Preis",
+        "prof.roi": "Hardware-ROI",
+        "prof.roi_days": "{d} Tage",
+        "prof.roi_never": "nie (kein Gewinn)",
+        "prof.scenarios": "BTCZ PREIS-SZENARIEN",
+        "prof.sc_price": "Preis EUR",
+        "prof.sc_profit": "Gewinn/Tag",
+        "prof.fill": "Gib dein Setup ein und klicke auf Berechnen.",
+        "prof.invalid": "Prüfe deine Eingaben — nur Zahlen.",
+        "prof.current": "aktuell",
         "body.prof": "Phase 2. Nutzt den Data Layer (Difficulty, Block-Belohnung, Netzwerk-Hashrate, Preis) kombiniert mit deiner Hashrate, Leistungsaufnahme, deinem Strompreis und der Pool-Gebühr, um Umsatz, Kosten, Gewinn, Preisszenarien und Break-even zu berechnen.",
         "body.pools": "Phase 3. Pools vergleichen (Gebühr, Hashrate, Miner, gefundene Blöcke, Luck, Uptime, Auszahlung) und die beste Pool für deine Hashrate empfehlen. Mögliche Basis: die von btcz.rocks bereits gelieferte 'minedBy'-Zuordnung.",
     },
@@ -344,23 +443,11 @@ class I18N:
         self._listeners = []
 
     def _load_lang(self):
-        if SETTINGS_FILE.exists():
-            try:
-                data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
-                lang = data.get("language", DEFAULT_LANG)
-                if lang in LANGUAGES:
-                    return lang
-            except Exception:
-                pass
-        return DEFAULT_LANG
+        lang = settings.get("language", DEFAULT_LANG)
+        return lang if lang in LANGUAGES else DEFAULT_LANG
 
     def _save_lang(self):
-        try:
-            SETTINGS_FILE.write_text(
-                json.dumps({"language": self.lang}, indent=2), encoding="utf-8"
-            )
-        except Exception:
-            pass
+        settings.set("language", self.lang)
 
     def set_language(self, lang):
         if lang not in LANGUAGES or lang == self.lang:

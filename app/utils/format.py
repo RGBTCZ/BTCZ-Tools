@@ -12,19 +12,29 @@ def miner_reward(height):
     return block_reward(height) * MINER_REWARD_RATIO
 
 
+EQUIHASH_CONSTANT = 2 ** 13
+
+SOL_UNITS = {
+    "Sol/s": 1,
+    "KSol/s": 1_000,
+    "MSol/s": 1_000_000,
+    "GSol/s": 1_000_000_000,
+}
+
+
 def compute_nethash(difficulty, block_time):
     if block_time <= 0:
         return 0.0
-    return difficulty * (2 ** 32) / block_time
+    return difficulty * EQUIHASH_CONSTANT / block_time
 
 
 def format_btcz(value, decimals=8):
     return f"{value:,.{decimals}f}"
 
 
-def format_hashrate(hps):
-    units = ["H/s", "KH/s", "MH/s", "GH/s", "TH/s", "PH/s"]
-    value = float(hps)
+def format_hashrate(sps):
+    units = ["Sol/s", "KSol/s", "MSol/s", "GSol/s", "TSol/s"]
+    value = float(sps)
     index = 0
     while value >= 1000 and index < len(units) - 1:
         value /= 1000

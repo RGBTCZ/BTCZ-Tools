@@ -14,6 +14,9 @@ class NetworkStats:
     connections: int = 0
     source: str = ""
 
+    def network_hashps(self):
+        return self.reported_hashps if self.reported_hashps > 0 else self.computed_hashps
+
 
 @dataclass
 class Block:
