@@ -1,0 +1,44 @@
+# Changelog
+
+All notable changes to BTCZ Tools are documented here.
+This project adheres to [Semantic Versioning](https://semver.org/).
+
+## [1.0.0] - 2026-08-28
+
+First complete release. BTCZ Tools grows from a single Mining Tracker into a modular
+desktop suite for BitcoinZ miners, built on a shared data layer with automatic failover.
+
+### Added
+
+**Architecture**
+- Modular structure: `app/` (core, api, ui, models, utils), `modules/`, `config/`, `data/`.
+- BTCZ Data Layer with a TTL cache and automatic failover between explorers.
+- Full internationalization: English (default), French, Spanish, German — live switching, remembered in `data/settings.json`.
+- BTCZ logo downloaded once and cached; window icon + sidebar branding.
+- Sidebar navigation across all modules.
+
+**Modules**
+- **📊 Dashboard** — home screen: network, your mining (today / 7 days / 30 days), profitability summary, market, and quick access to every module.
+- **⛏️ Mining Tracker** — rewards received on a transparent (t1) address per day or date range, summary cards, CSV export, address history, calendar picker; plus a live pool-side stats panel (balance, paid, hashrate, workers) for any t1 address.
+- **💰 Profitability** — revenue, electricity, pool fee, profit per day; price scenarios; break-even BTCZ price; hardware ROI. Inputs remembered.
+- **🌊 Pool Explorer** — on-chain pool distribution via block `minedBy`, live pool stats, expected earnings for your hashrate, and a known-pools directory (fee, payout, min pay, status).
+- **🌐 Network Explorer** — network stats and latest blocks with miner attribution.
+- **📈 History** — monthly mining history, this/last month comparison, projection (1/3/6/12 months), and snapshot-based alerts (difficulty change, new rewards).
+
+**Live pool APIs (3 formats supported)**
+- z-nomp (`/api/stats`, `/api/worker_stats`) — SW Groupe, Dark Fiber Mines.
+- zpool/yiimp (`/api/currencies`) — zpool.ca.
+- Miningcore (`/api/pools/{id}`, `/api/pools/{id}/miners/{address}`) — HimPool, HimPool (solo).
+
+**Data sources**
+- `explorer.btcz.rocks` (Insight) for network, blocks and miner attribution.
+- `explorer.getbtcz.com` for address transactions, with btcz.rocks fallback.
+- CoinGecko for BTCZ price (EUR + USD).
+
+### Fixed
+- Corrected the BitcoinZ hashrate model: BTCZ is Equihash 144,5 (Sol/s); difficulty → hashrate uses the `2^13` constant, not `2^32`. The network hashrate now matches the node value.
+- Address transactions on btcz.rocks now use the correct endpoint `/api/txs?address=` with `limit`/`offset` (was `/addr/{addr}/txs` with `from`/`to`).
+- Price cards no longer clip the currency label.
+- `run_btcz.sh` creates the virtualenv and installs dependencies on first launch, and rejects the Windows Microsoft Store Python stub.
+
+[1.0.0]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.0.0
