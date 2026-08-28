@@ -1,9 +1,8 @@
 import json
 import threading
-from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-DATA_DIR.mkdir(exist_ok=True)
+from app.core.paths import DATA_DIR
+
 SETTINGS_FILE = DATA_DIR / "settings.json"
 
 _lock = threading.Lock()

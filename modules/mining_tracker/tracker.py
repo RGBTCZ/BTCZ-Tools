@@ -3,12 +3,12 @@ import csv
 import json
 import threading
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from tkinter import filedialog
 
 import customtkinter as ctk
 
 from app.core.i18n import t
+from app.core.paths import DATA_DIR
 from app.ui.theme import COLORS, font
 from app.ui.widgets import LogConsole, SectionTitle, StatCard
 from app.utils.format import format_btcz, format_hashrate
@@ -17,8 +17,6 @@ from modules.base_module import BaseModule
 
 API_POOLS = [p["name"] for p in POOLS if p.get("api_base") or p.get("api_miningcore")]
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-DATA_DIR.mkdir(exist_ok=True)
 ADDRESSES_FILE = DATA_DIR / "addresses.json"
 
 

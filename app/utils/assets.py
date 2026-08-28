@@ -1,15 +1,12 @@
-from pathlib import Path
-
 import requests
 from PIL import Image, ImageTk
 
 from app.core.logger import get_logger
+from app.core.paths import DATA_DIR
 from config.config import LOGO_URLS
 
 log = get_logger("assets")
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "data"
-DATA_DIR.mkdir(exist_ok=True)
 LOGO_PNG = DATA_DIR / "btcz_logo.png"
 LOGO_ICO = DATA_DIR / "btcz_logo.ico"
 

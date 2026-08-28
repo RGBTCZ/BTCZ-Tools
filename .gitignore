@@ -29,5 +29,4 @@ desktop.ini
 
 build/
 dist/
-*.spec
 *.egg-info/
