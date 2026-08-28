@@ -2,6 +2,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/RGBTCZ/BTCZ-Tools?color=3DDC97)](https://github.com/RGBTCZ/BTCZ-Tools/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/RGBTCZ/BTCZ-Tools/total?color=3DDC97)](https://github.com/RGBTCZ/BTCZ-Tools/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-3DDC97)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-3DDC97)](https://www.python.org/)
 
 A modular desktop toolkit for **BitcoinZ (BTCZ)** miners.
@@ -84,5 +85,9 @@ Or simply run `./run_btcz.sh` — it creates the virtual environment, installs t
 Phase 0 (architecture + data layer) ✅ → Phase 1 (Mining Tracker) ✅ → Phase 2 (Profitability) ✅ → Phase 3 (Pool Explorer + live pool APIs) ✅ → Phase 4 (Network Explorer) ✅ → Phase 5 (Dashboard) ✅ → Phase 6 (alerts + history) ✅ → Phase 7 (Mining Assistant) ✅
 
 **The full roadmap is complete.** 🎉
+
+## License
+
+Released under the [MIT License](./LICENSE) © 2026 RGBTCZ.
 
 Built for the BitcoinZ community.
