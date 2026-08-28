@@ -17,5 +17,5 @@ pip install pyinstaller -q
 
 pyinstaller btcz_tools.spec --noconfirm --clean
 
-echo "✅ Terminé : dist/BTCZ Tools.exe"
+echo "✅ Terminé : dist/BTCZ-Tools.exe"
 read -p "Entrée pour fermer..."

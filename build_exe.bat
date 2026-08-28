@@ -20,6 +20,6 @@ pyinstaller btcz_tools.spec --noconfirm --clean
 
 echo.
 echo ========================================
-echo   Termine : dist\BTCZ Tools.exe
+echo   Termine : dist\BTCZ-Tools.exe
 echo ========================================
 pause

@@ -15,7 +15,7 @@ The script creates a virtualenv, installs the dependencies and PyInstaller,
 then builds the executable. The result is:
 
 ```
-dist/BTCZ Tools.exe
+dist/BTCZ-Tools.exe
 ```
 
 ## Manual build

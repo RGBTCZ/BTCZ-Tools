@@ -4,7 +4,9 @@ from PyInstaller.utils.hooks import collect_all
 
 datas, binaries, hiddenimports = collect_all("customtkinter")
 
-icon_file = "btcz_logo.ico" if os.path.exists("btcz_logo.ico") else None
+icon_path = os.path.join(SPECPATH, "btcz_logo.ico")
+icon_file = icon_path if os.path.exists(icon_path) else None
+print("BTCZ Tools build icon:", icon_file or "DEFAULT (btcz_logo.ico introuvable a cote du .spec)")
 
 a = Analysis(
     ["run.py"],
@@ -27,7 +29,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="BTCZ Tools",
+    name="BTCZ-Tools",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
