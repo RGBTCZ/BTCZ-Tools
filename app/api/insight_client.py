@@ -22,10 +22,10 @@ class InsightClient:
     def get_addr(self, address):
         return http_get_json(f"{self.base_url}/addr/{address}", params={"noTxList": 1})
 
-    def get_addr_txs(self, address, from_index=0, to_index=50):
+    def get_addr_txs(self, address, limit=50, offset=0):
         return http_get_json(
-            f"{self.base_url}/addr/{address}/txs",
-            params={"from": from_index, "to": to_index},
+            f"{self.base_url}/txs",
+            params={"address": address, "limit": limit, "offset": offset},
         )
 
     def get_tx(self, txid):

@@ -201,11 +201,11 @@ class BTCZDataLayer:
 
     def _insight_txs(self, address, log_fn):
         out = []
-        from_index = 0
+        offset = 0
         page = 50
         while True:
-            data = self.insight.get_addr_txs(address, from_index, from_index + page)
-            items = data.get("items", [])
+            data = self.insight.get_addr_txs(address, limit=page, offset=offset)
+            items = data.get("txs", [])
             for tx in items:
                 value = self._net_value(tx, address)
                 if value <= 0:
@@ -218,12 +218,11 @@ class BTCZDataLayer:
                         is_mining=value > MINING_THRESHOLD,
                     )
                 )
-            total = int(data.get("totalItems", 0) or 0)
             if log_fn:
                 log_fn(t("dl.progress", n=len(out)))
-            from_index += page
-            if from_index >= total or not items:
+            if len(items) < page:
                 break
+            offset += page
         if log_fn:
             log_fn(t("dl.total", n=len(out)) + "\n", "ok")
         return out
