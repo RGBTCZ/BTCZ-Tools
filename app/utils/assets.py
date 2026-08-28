@@ -28,7 +28,11 @@ def ensure_logo():
     if LOGO_PNG.exists() and not LOGO_ICO.exists():
         try:
             img = Image.open(LOGO_PNG).convert("RGBA")
-            img.save(LOGO_ICO, format="ICO", sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])
+            img.save(
+                LOGO_ICO,
+                format="ICO",
+                sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
+            )
         except Exception as exc:
             log.warning("ICO conversion failed: %s", exc)
 

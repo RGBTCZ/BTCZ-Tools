@@ -1,7 +1,18 @@
 # BTCZ Tools
 
+[![Latest release](https://img.shields.io/github/v/release/RGBTCZ/BTCZ-Tools?color=3DDC97)](https://github.com/RGBTCZ/BTCZ-Tools/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/RGBTCZ/BTCZ-Tools/total?color=3DDC97)](https://github.com/RGBTCZ/BTCZ-Tools/releases)
+[![Python](https://img.shields.io/badge/python-3.10+-3DDC97)](https://www.python.org/)
+
 A modular desktop toolkit for **BitcoinZ (BTCZ)** miners.
 Built around a **shared data layer**: a piece of network data fetched once is reused everywhere.
+
+## ⬇️ Download
+
+### **[▶ Download BTCZ-Tools.exe](https://github.com/RGBTCZ/BTCZ-Tools/releases/latest)** — Windows, no install needed
+
+Just download the latest `BTCZ-Tools.exe` and double-click. No Python, no setup.
+Prefer running from source? See [Installation](#installation) below.
 
 **Multilingual**: 🇬🇧 EN (default), 🇫🇷 FR, 🇪🇸 ES, 🇩🇪 DE — switch on the fly from the sidebar selector, language remembered in `data/settings.json`.
 **BTCZ logo** downloaded on first launch and cached in `data/` (window icon + sidebar).

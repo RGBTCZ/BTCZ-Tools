@@ -3,6 +3,21 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-08-28
+
+First Windows binary: a standalone `BTCZ-Tools.exe` you can download and run without Python.
+
+### Added
+- **Standalone Windows executable** — build a single `BTCZ-Tools.exe` with PyInstaller (`btcz_tools.spec`, `build_exe.bat` / `build_exe.sh`, `BUILD.md`).
+- `make_icon.py` to generate a sharp multi-size (16→256 px) application icon from the logo.
+
+### Fixed
+- Frozen-aware data paths: when packaged, the app stores its `data/` folder next to the executable, so addresses, settings, logo, logs and history persist between runs.
+- Logging no longer fails in windowed (no-console) mode.
+- Window/app icon now includes 128 px and 256 px sizes for a crisp look on Windows 10/11.
+
+[1.1.1]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.1.1
+
 ## [1.1.0] - 2026-08-28
 
 Completes the roadmap with the Mining Assistant, plus a responsive-UI fix.
