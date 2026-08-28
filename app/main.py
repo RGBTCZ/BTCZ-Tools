@@ -11,6 +11,7 @@ from app.ui.theme import COLORS, apply_theme, font
 from app.utils.assets import apply_window_icon, ensure_logo, load_logo_image
 from config.config import APP_NAME, APP_VERSION
 from modules.dashboard.dashboard import DashboardModule
+from modules.history.history import HistoryModule
 from modules.mining_tracker.tracker import MiningTrackerModule
 from modules.network_explorer.network_explorer import NetworkExplorerModule
 from modules.pool_explorer.pool_explorer import PoolExplorerModule
@@ -58,6 +59,7 @@ class BTCZToolsApp(ctk.CTk):
             ProfitabilityModule,
             PoolExplorerModule,
             NetworkExplorerModule,
+            HistoryModule,
         ]
 
         self.modules = {}

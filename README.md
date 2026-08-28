@@ -17,6 +17,7 @@ Built around a **shared data layer**: a piece of network data fetched once is re
 | 💰 Profitability | working | Revenue, cost, profit, price scenarios, break-even and hardware ROI |
 | 🌊 Pool Explorer | working | On-chain pool distribution (`minedBy`), live z-nomp pool stats, expected earnings for your hashrate, known-pools directory |
 | 🌐 Network Explorer | working | Network stats + latest blocks (with miner) |
+| 📈 History | working | Monthly mining history, this/last month comparison, projection (1/3/6/12 months), snapshot-based alerts (difficulty change, new rewards) |
 
 ## Architecture
 
@@ -68,6 +69,6 @@ Or simply run `./run_btcz.sh` — it creates the virtual environment, installs t
 
 ## Roadmap
 
-Phase 0 (architecture + data layer) ✅ → Phase 1 (Mining Tracker) ✅ → Phase 2 (Profitability) ✅ → Phase 3 (Pool Explorer + live pool APIs) ✅ → Phase 4 (Network Explorer) ✅ → Phase 5 (Dashboard) ✅ → **Phase 6 (alerts + history)** → Phase 7 (Mining Assistant).
+Phase 0 (architecture + data layer) ✅ → Phase 1 (Mining Tracker) ✅ → Phase 2 (Profitability) ✅ → Phase 3 (Pool Explorer + live pool APIs) ✅ → Phase 4 (Network Explorer) ✅ → Phase 5 (Dashboard) ✅ → Phase 6 (alerts + history) ✅ → **Phase 7 (Mining Assistant)**.
 
 Built for the BitcoinZ community.
