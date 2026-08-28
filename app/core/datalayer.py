@@ -1,3 +1,5 @@
+import threading
+
 from app.api.getbtcz_client import GetbtczClient
 from app.api.insight_client import InsightClient
 from app.api.market_client import MarketClient
@@ -34,69 +36,87 @@ class BTCZDataLayer:
         self.zpool = ZpoolClient()
         self.miningcore = MiningcoreClient()
         self.cache = TTLCache()
+        self._locks = {}
+        self._locks_guard = threading.Lock()
+
+    def _key_lock(self, key):
+        with self._locks_guard:
+            lock = self._locks.get(key)
+            if lock is None:
+                lock = threading.Lock()
+                self._locks[key] = lock
+            return lock
+
+    def _cached(self, key, ttl, fetch_fn):
+        cached = self.cache.get(key)
+        if cached is not None:
+            return cached
+        with self._key_lock(key):
+            cached = self.cache.get(key)
+            if cached is not None:
+                return cached
+            value = fetch_fn()
+            self.cache.set(key, value, ttl)
+            return value
 
     def get_network_stats(self):
-        cached = self.cache.get("network")
-        if cached:
-            return cached
-        info = self.insight.get_info()
-        height = int(info.get("blocks", 0) or 0)
-        difficulty = float(info.get("difficulty", 0) or 0)
-        stats = NetworkStats(
-            height=height,
-            difficulty=difficulty,
-            reported_hashps=float(info.get("networkhashps", 0) or 0),
-            computed_hashps=compute_nethash(difficulty, BLOCK_TIME_TARGET),
-            block_time=BLOCK_TIME_TARGET,
-            block_reward=block_reward(height),
-            miner_reward=miner_reward(height),
-            connections=int(info.get("connections", 0) or 0),
-            source="btcz.rocks",
-        )
-        self.cache.set("network", stats, CACHE_TTL["network"])
-        return stats
+        def fetch():
+            info = self.insight.get_info()
+            height = int(info.get("blocks", 0) or 0)
+            difficulty = float(info.get("difficulty", 0) or 0)
+            return NetworkStats(
+                height=height,
+                difficulty=difficulty,
+                reported_hashps=float(info.get("networkhashps", 0) or 0),
+                computed_hashps=compute_nethash(difficulty, BLOCK_TIME_TARGET),
+                block_time=BLOCK_TIME_TARGET,
+                block_reward=block_reward(height),
+                miner_reward=miner_reward(height),
+                connections=int(info.get("connections", 0) or 0),
+                source="btcz.rocks",
+            )
+
+        return self._cached("network", CACHE_TTL["network"], fetch)
 
     def get_latest_blocks(self, limit=10):
-        key = f"blocks:{limit}"
-        cached = self.cache.get(key)
-        if cached:
-            return cached
-        blocks = []
-        try:
-            raw = self.insight.get_blocks(limit)
-            for item in raw:
-                height = int(item.get("height", 0) or 0)
-                blocks.append(
-                    Block(
-                        height=height,
-                        hash=item.get("hash", ""),
-                        time=int(item.get("time", 0) or 0),
-                        size=int(item.get("size", 0) or 0),
-                        tx_count=int(item.get("txlength", 0) or 0),
-                        mined_by=item.get("minedBy", ""),
-                        reward=block_reward(height),
-                        source="btcz.rocks",
+        def fetch():
+            blocks = []
+            try:
+                raw = self.insight.get_blocks(limit)
+                for item in raw:
+                    height = int(item.get("height", 0) or 0)
+                    blocks.append(
+                        Block(
+                            height=height,
+                            hash=item.get("hash", ""),
+                            time=int(item.get("time", 0) or 0),
+                            size=int(item.get("size", 0) or 0),
+                            tx_count=int(item.get("txlength", 0) or 0),
+                            mined_by=item.get("minedBy", ""),
+                            reward=block_reward(height),
+                            source="btcz.rocks",
+                        )
                     )
-                )
-        except (NetworkError, DataError) as exc:
-            log.warning("Insight blocks failed, fallback getbtcz: %s", exc)
-            raw = self.getbtcz.get_blocks(limit)
-            for item in raw:
-                height = int(item.get("height", 0) or 0)
-                blocks.append(
-                    Block(
-                        height=height,
-                        hash=item.get("hash", ""),
-                        time=int(item.get("time", 0) or 0),
-                        size=int(item.get("size", 0) or 0),
-                        tx_count=len(item.get("tx", []) or []),
-                        difficulty=float(item.get("difficulty", 0) or 0),
-                        reward=block_reward(height),
-                        source="getbtcz.com",
+            except (NetworkError, DataError) as exc:
+                log.warning("Insight blocks failed, fallback getbtcz: %s", exc)
+                raw = self.getbtcz.get_blocks(limit)
+                for item in raw:
+                    height = int(item.get("height", 0) or 0)
+                    blocks.append(
+                        Block(
+                            height=height,
+                            hash=item.get("hash", ""),
+                            time=int(item.get("time", 0) or 0),
+                            size=int(item.get("size", 0) or 0),
+                            tx_count=len(item.get("tx", []) or []),
+                            difficulty=float(item.get("difficulty", 0) or 0),
+                            reward=block_reward(height),
+                            source="getbtcz.com",
+                        )
                     )
-                )
-        self.cache.set(key, blocks, CACHE_TTL["blocks"])
-        return blocks
+            return blocks
+
+        return self._cached(f"blocks:{limit}", CACHE_TTL["blocks"], fetch)
 
     def get_block(self, block_hash):
         key = f"block:{block_hash}"
@@ -250,11 +270,9 @@ class BTCZDataLayer:
         return None
 
     def get_pool_stats(self, window=POOL_WINDOW):
-        key = f"pools:{window}"
-        cached = self.cache.get(key)
-        if cached:
-            return cached
+        return self._cached(f"pools:{window}", CACHE_TTL["pools"], lambda: self._fetch_pool_stats(window))
 
+    def _fetch_pool_stats(self, window):
         net = self.get_network_stats()
         raw = self.insight.get_blocks(window)
         total = len(raw) or 1
@@ -309,29 +327,26 @@ class BTCZDataLayer:
             )
 
         stats.sort(key=lambda s: s.blocks_found, reverse=True)
-        result = {"window": total, "network_hashps": network_hashps, "pools": stats}
-        self.cache.set(key, result, CACHE_TTL["pools"])
-        return result
+        return {"window": total, "network_hashps": network_hashps, "pools": stats}
 
     def get_pool_live(self):
-        cached = self.cache.get("pool_live")
-        if cached:
-            return cached
-        result = {}
-        for pool in POOLS:
-            name = pool["name"]
-            try:
-                if pool.get("api_base"):
-                    result[name] = self.nomp.get_btcz(pool["api_base"], name)
-                elif pool.get("api_currencies"):
-                    result[name] = self.zpool.get_btcz(pool["api_currencies"], name)
-                elif pool.get("api_miningcore"):
-                    result[name] = self.miningcore.get_btcz(pool["api_miningcore"], name)
-            except (NetworkError, DataError) as exc:
-                log.warning("pool live %s failed: %s", name, exc)
-                result[name] = PoolLive(name=name, ok=False)
-        self.cache.set("pool_live", result, CACHE_TTL["pools"])
-        return result
+        def fetch():
+            result = {}
+            for pool in POOLS:
+                name = pool["name"]
+                try:
+                    if pool.get("api_base"):
+                        result[name] = self.nomp.get_btcz(pool["api_base"], name)
+                    elif pool.get("api_currencies"):
+                        result[name] = self.zpool.get_btcz(pool["api_currencies"], name)
+                    elif pool.get("api_miningcore"):
+                        result[name] = self.miningcore.get_btcz(pool["api_miningcore"], name)
+                except (NetworkError, DataError) as exc:
+                    log.warning("pool live %s failed: %s", name, exc)
+                    result[name] = PoolLive(name=name, ok=False)
+            return result
+
+        return self._cached("pool_live", CACHE_TTL["pools"], fetch)
 
     def get_worker_stats(self, pool_name, address):
         target = None
@@ -359,9 +374,4 @@ class BTCZDataLayer:
         return worker
 
     def get_market(self):
-        cached = self.cache.get("market")
-        if cached:
-            return cached
-        data = self.market.get_price()
-        self.cache.set("market", data, CACHE_TTL["market"])
-        return data
+        return self._cached("market", CACHE_TTL["market"], self.market.get_price)

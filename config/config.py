@@ -12,13 +12,13 @@ LOGO_URLS = [
 HTTP_TIMEOUT = 15
 
 CACHE_TTL = {
-    "network": 30,
-    "blocks": 15,
-    "block": 60,
-    "market": 60,
-    "address": 30,
-    "address_txs": 45,
-    "pools": 60,
+    "network": 60,
+    "blocks": 60,
+    "block": 600,
+    "market": 120,
+    "address": 60,
+    "address_txs": 60,
+    "pools": 300,
 }
 
 HALVING_INTERVAL = 840000
