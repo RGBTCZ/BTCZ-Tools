@@ -73,13 +73,23 @@ class ProfitabilityModule(BaseModule):
 
         self.lbl_gpu = ctk.CTkLabel(card, text=t("prof.gpu_preset"), anchor="w")
         self.lbl_gpu.grid(row=1, column=0, padx=16, pady=(6, 0), sticky="w")
+        gpu_frame = ctk.CTkFrame(card, fg_color="transparent")
+        gpu_frame.grid(row=2, column=0, padx=16, pady=(0, 6), sticky="ew")
+        gpu_frame.grid_columnconfigure(0, weight=1)
         self.gpu_menu = ctk.CTkOptionMenu(
-            card, values=self._gpu_values(), command=self._on_gpu_select,
+            gpu_frame, values=self._gpu_values(), command=self._apply_gpu,
             fg_color=COLORS["sidebar"], button_color=COLORS["accent_dark"],
             button_hover_color=COLORS["accent"],
         )
         self.gpu_menu.set(t("prof.gpu_custom"))
-        self.gpu_menu.grid(row=2, column=0, padx=16, pady=(0, 6), sticky="ew")
+        self.gpu_menu.grid(row=0, column=0, sticky="ew")
+        self.gpu_qty = ctk.CTkOptionMenu(
+            gpu_frame, values=[f"x{i}" for i in range(1, 13)], width=70, command=self._apply_gpu,
+            fg_color=COLORS["sidebar"], button_color=COLORS["accent_dark"],
+            button_hover_color=COLORS["accent"],
+        )
+        self.gpu_qty.set("x1")
+        self.gpu_qty.grid(row=0, column=1, padx=(8, 0))
 
         self.lbl_hashrate = ctk.CTkLabel(card, text=t("prof.hashrate"), anchor="w")
         self.lbl_hashrate.grid(row=3, column=0, padx=16, pady=(6, 0), sticky="w")
@@ -127,16 +137,21 @@ class ProfitabilityModule(BaseModule):
     def _gpu_values(self):
         return [t("prof.gpu_custom")] + [g["name"] for g in GPU_PRESETS]
 
-    def _on_gpu_select(self, name):
+    def _apply_gpu(self, *_):
+        name = self.gpu_menu.get()
         if name == t("prof.gpu_custom"):
             return
+        try:
+            qty = int(self.gpu_qty.get().lstrip("x") or 1)
+        except ValueError:
+            qty = 1
         for gpu in GPU_PRESETS:
             if gpu["name"] == name:
                 self.unit_menu.set("Sol/s")
                 self.in_hashrate.delete(0, "end")
-                self.in_hashrate.insert(0, str(gpu["sols"]))
+                self.in_hashrate.insert(0, str(gpu["sols"] * qty))
                 self.in_power.delete(0, "end")
-                self.in_power.insert(0, str(gpu["watts"]))
+                self.in_power.insert(0, str(gpu["watts"] * qty))
                 break
 
     def _build_results(self, parent):

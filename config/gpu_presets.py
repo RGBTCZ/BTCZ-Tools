@@ -1,7 +1,7 @@
 GPU_PRESETS = [
     {"name": "NVIDIA GTX 1060 6GB", "sols": 20, "watts": 90},
     {"name": "NVIDIA GTX 1070", "sols": 32, "watts": 120},
-    {"name": "NVIDIA GTX 1070 Ti", "sols": 36, "watts": 135},
+    {"name": "NVIDIA GTX 1070 Ti", "sols": 65, "watts": 135},
     {"name": "NVIDIA GTX 1080", "sols": 40, "watts": 140},
     {"name": "NVIDIA GTX 1080 Ti", "sols": 55, "watts": 180},
     {"name": "NVIDIA GTX 1660 Super", "sols": 28, "watts": 90},
