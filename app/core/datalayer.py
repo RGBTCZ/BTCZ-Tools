@@ -1,6 +1,7 @@
 from app.api.getbtcz_client import GetbtczClient
 from app.api.insight_client import InsightClient
 from app.api.market_client import MarketClient
+from app.api.miningcore_client import MiningcoreClient
 from app.api.nomp_client import NompClient
 from app.api.zpool_client import ZpoolClient
 from app.core.cache import TTLCache
@@ -31,6 +32,7 @@ class BTCZDataLayer:
         self.market = MarketClient()
         self.nomp = NompClient()
         self.zpool = ZpoolClient()
+        self.miningcore = MiningcoreClient()
         self.cache = TTLCache()
 
     def get_network_stats(self):
@@ -323,6 +325,8 @@ class BTCZDataLayer:
                     result[name] = self.nomp.get_btcz(pool["api_base"], name)
                 elif pool.get("api_currencies"):
                     result[name] = self.zpool.get_btcz(pool["api_currencies"], name)
+                elif pool.get("api_miningcore"):
+                    result[name] = self.miningcore.get_btcz(pool["api_miningcore"], name)
             except (NetworkError, DataError) as exc:
                 log.warning("pool live %s failed: %s", name, exc)
                 result[name] = PoolLive(name=name, ok=False)
