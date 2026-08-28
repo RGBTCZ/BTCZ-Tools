@@ -3,6 +3,18 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-08-28
+
+Completes the roadmap with the Mining Assistant, plus a responsive-UI fix.
+
+### Added
+- **🚀 Mining Assistant** — rule-based analysis of your setup: estimated monthly profit (or loss), break-even BTCZ price and how far the price must move to reach it, how much of your revenue electricity eats, a recommendation to switch to the cheapest active pool (with the daily BTCZ gain), your share of the network, and hardware ROI. Honest by design — no invented "average miner" baseline; every insight is a value that can actually be computed.
+
+### Fixed
+- Stat cards are now responsive: long titles (e.g. "Electricity (EUR/kWh)", "Hardware cost") wrap to the card width instead of being clipped, on every screen.
+
+[1.1.0]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.1.0
+
 ## [1.0.0] - 2026-08-28
 
 First complete release. BTCZ Tools grows from a single Mining Tracker into a modular

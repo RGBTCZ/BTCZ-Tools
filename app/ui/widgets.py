@@ -34,6 +34,14 @@ class StatCard(ctk.CTkFrame):
         )
         self.sub_lbl.grid(row=2, column=0, padx=16, pady=(0, 14), sticky="w")
 
+        self.bind("<Configure>", self._on_resize)
+
+    def _on_resize(self, event):
+        wrap = max(event.width - 28, 40)
+        self.title_lbl.configure(wraplength=wrap)
+        self.value_lbl.configure(wraplength=wrap)
+        self.sub_lbl.configure(wraplength=wrap)
+
     def set_title(self, title):
         self.title_lbl.configure(text=title.upper())
 
