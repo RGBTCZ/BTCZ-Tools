@@ -8,6 +8,7 @@ from app.ui.theme import COLORS, font
 from app.ui.widgets import SectionTitle, StatCard
 from app.utils.format import SOL_UNITS, format_btcz, format_fiat, format_hashrate
 from app.utils.mining_calc import breakeven_price, price_scenarios, profitability, roi_days
+from config.gpu_presets import GPU_PRESETS
 from modules.base_module import BaseModule
 
 MULTIPLIERS = [0.5, 1, 2, 5, 10]
@@ -70,10 +71,20 @@ class ProfitabilityModule(BaseModule):
         self.lbl_setup = SectionTitle(card, text=t("prof.setup"))
         self.lbl_setup.grid(row=0, column=0, padx=16, pady=(14, 8), sticky="w")
 
+        self.lbl_gpu = ctk.CTkLabel(card, text=t("prof.gpu_preset"), anchor="w")
+        self.lbl_gpu.grid(row=1, column=0, padx=16, pady=(6, 0), sticky="w")
+        self.gpu_menu = ctk.CTkOptionMenu(
+            card, values=self._gpu_values(), command=self._on_gpu_select,
+            fg_color=COLORS["sidebar"], button_color=COLORS["accent_dark"],
+            button_hover_color=COLORS["accent"],
+        )
+        self.gpu_menu.set(t("prof.gpu_custom"))
+        self.gpu_menu.grid(row=2, column=0, padx=16, pady=(0, 6), sticky="ew")
+
         self.lbl_hashrate = ctk.CTkLabel(card, text=t("prof.hashrate"), anchor="w")
-        self.lbl_hashrate.grid(row=1, column=0, padx=16, pady=(6, 0), sticky="w")
+        self.lbl_hashrate.grid(row=3, column=0, padx=16, pady=(6, 0), sticky="w")
         hr = ctk.CTkFrame(card, fg_color="transparent")
-        hr.grid(row=2, column=0, padx=16, pady=(0, 6), sticky="ew")
+        hr.grid(row=4, column=0, padx=16, pady=(0, 6), sticky="ew")
         hr.grid_columnconfigure(0, weight=1)
         self.in_hashrate = ctk.CTkEntry(hr, height=34)
         self.in_hashrate.insert(0, self.saved["hashrate"])
@@ -87,31 +98,46 @@ class ProfitabilityModule(BaseModule):
         self.unit_menu.grid(row=0, column=1, padx=(8, 0))
 
         self.lbl_power = ctk.CTkLabel(card, text=t("prof.power"), anchor="w")
-        self.lbl_power.grid(row=3, column=0, padx=16, pady=(6, 0), sticky="w")
+        self.lbl_power.grid(row=5, column=0, padx=16, pady=(6, 0), sticky="w")
         self.in_power = ctk.CTkEntry(card, height=34)
         self.in_power.insert(0, self.saved["power"])
-        self.in_power.grid(row=4, column=0, padx=16, pady=(0, 6), sticky="ew")
+        self.in_power.grid(row=6, column=0, padx=16, pady=(0, 6), sticky="ew")
 
         self.lbl_elec = ctk.CTkLabel(card, text=t("prof.elec"), anchor="w")
-        self.lbl_elec.grid(row=5, column=0, padx=16, pady=(6, 0), sticky="w")
+        self.lbl_elec.grid(row=7, column=0, padx=16, pady=(6, 0), sticky="w")
         self.in_elec = ctk.CTkEntry(card, height=34)
         self.in_elec.insert(0, self.saved["elec"])
-        self.in_elec.grid(row=6, column=0, padx=16, pady=(0, 6), sticky="ew")
+        self.in_elec.grid(row=8, column=0, padx=16, pady=(0, 6), sticky="ew")
 
         self.lbl_fee = ctk.CTkLabel(card, text=t("prof.pool_fee"), anchor="w")
-        self.lbl_fee.grid(row=7, column=0, padx=16, pady=(6, 0), sticky="w")
+        self.lbl_fee.grid(row=9, column=0, padx=16, pady=(6, 0), sticky="w")
         self.in_fee = ctk.CTkEntry(card, height=34)
         self.in_fee.insert(0, self.saved["pool_fee"])
-        self.in_fee.grid(row=8, column=0, padx=16, pady=(0, 6), sticky="ew")
+        self.in_fee.grid(row=10, column=0, padx=16, pady=(0, 6), sticky="ew")
 
         self.lbl_hw = ctk.CTkLabel(card, text=t("prof.hardware"), anchor="w")
-        self.lbl_hw.grid(row=9, column=0, padx=16, pady=(6, 0), sticky="w")
+        self.lbl_hw.grid(row=11, column=0, padx=16, pady=(6, 0), sticky="w")
         self.in_hw = ctk.CTkEntry(card, height=34)
         self.in_hw.insert(0, self.saved["hardware"])
-        self.in_hw.grid(row=10, column=0, padx=16, pady=(0, 10), sticky="ew")
+        self.in_hw.grid(row=12, column=0, padx=16, pady=(0, 10), sticky="ew")
 
         self.calc_btn = ctk.CTkButton(card, text=t("prof.calculate"), height=40, command=self.calculate)
-        self.calc_btn.grid(row=11, column=0, padx=16, pady=(4, 16), sticky="ew")
+        self.calc_btn.grid(row=13, column=0, padx=16, pady=(4, 16), sticky="ew")
+
+    def _gpu_values(self):
+        return [t("prof.gpu_custom")] + [g["name"] for g in GPU_PRESETS]
+
+    def _on_gpu_select(self, name):
+        if name == t("prof.gpu_custom"):
+            return
+        for gpu in GPU_PRESETS:
+            if gpu["name"] == name:
+                self.unit_menu.set("Sol/s")
+                self.in_hashrate.delete(0, "end")
+                self.in_hashrate.insert(0, str(gpu["sols"]))
+                self.in_power.delete(0, "end")
+                self.in_power.insert(0, str(gpu["watts"]))
+                break
 
     def _build_results(self, parent):
         card = ctk.CTkFrame(parent, corner_radius=16, fg_color=COLORS["card"])
@@ -174,6 +200,11 @@ class ProfitabilityModule(BaseModule):
         self.sec_net.configure(text=t("prof.network_data"))
         self.lbl_setup.configure(text=t("prof.setup"))
         self.lbl_results.configure(text=t("prof.results"))
+        self.lbl_gpu.configure(text=t("prof.gpu_preset"))
+        current = self.gpu_menu.get()
+        self.gpu_menu.configure(values=self._gpu_values())
+        if current not in [g["name"] for g in GPU_PRESETS]:
+            self.gpu_menu.set(t("prof.gpu_custom"))
         self.lbl_hashrate.configure(text=t("prof.hashrate"))
         self.lbl_power.configure(text=t("prof.power"))
         self.lbl_elec.configure(text=t("prof.elec"))

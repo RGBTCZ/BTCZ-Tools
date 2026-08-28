@@ -25,7 +25,7 @@ def ensure_logo():
                 log.warning("Logo download failed (%s): %s", url, exc)
                 continue
 
-    if LOGO_PNG.exists() and not LOGO_ICO.exists():
+    if LOGO_PNG.exists():
         try:
             img = Image.open(LOGO_PNG).convert("RGBA")
             img.save(
