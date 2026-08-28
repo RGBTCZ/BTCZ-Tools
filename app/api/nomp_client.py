@@ -1,5 +1,5 @@
 from app.core.errors import http_get_json
-from app.models.models import PoolLive
+from app.models.models import PoolLive, PoolWorker
 from app.utils.format import parse_hashrate_string
 
 
@@ -19,6 +19,24 @@ class NompClient:
             blocks_confirmed=int(blocks.get("confirmed", 0) or 0),
             blocks_pending=int(blocks.get("pending", 0) or 0),
             fee=self._fee(pool.get("poolFees")),
+            ok=True,
+        )
+
+    def get_worker(self, api_base, address, timeout=8):
+        url = f"{api_base.rstrip('/')}/worker_stats?{address}"
+        data = http_get_json(url, timeout=timeout)
+        if not data or not data.get("miner"):
+            return PoolWorker(miner=address, ok=False)
+        workers = data.get("workers", {}) or {}
+        return PoolWorker(
+            miner=data.get("miner", address),
+            total_hash=float(data.get("totalHash", 0) or 0),
+            total_shares=float(data.get("totalShares", 0) or 0),
+            network_sols=float(data.get("networkSols", 0) or 0),
+            immature=float(data.get("immature", 0) or 0),
+            balance=float(data.get("balance", 0) or 0),
+            paid=float(data.get("paid", 0) or 0),
+            workers=len(workers) if isinstance(workers, dict) else 0,
             ok=True,
         )
 

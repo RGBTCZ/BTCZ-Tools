@@ -31,6 +31,7 @@ LIMIT_RECENT = 200
 LIMIT_FULL = 100
 
 POOL_WINDOW = 100
+NOMP_HASH_DIVISOR = 500000
 
 POOLS = [
     {"name": "zpool.ca", "url": "https://zpool.ca", "fee": 1.0, "scheme": "PROP", "min_pay": 10, "active": True, "tags": ["zpool"]},

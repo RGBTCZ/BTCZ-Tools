@@ -10,10 +10,12 @@ import customtkinter as ctk
 
 from app.core.i18n import t
 from app.ui.theme import COLORS, font
-from app.ui.widgets import LogConsole, StatCard
-from app.utils.format import format_btcz
-from config.config import MINING_THRESHOLD
+from app.ui.widgets import LogConsole, SectionTitle, StatCard
+from app.utils.format import format_btcz, format_hashrate
+from config.config import MINING_THRESHOLD, NOMP_HASH_DIVISOR, POOLS
 from modules.base_module import BaseModule
+
+API_POOLS = [p["name"] for p in POOLS if p.get("api_base")]
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -147,7 +149,7 @@ class MiningTrackerModule(BaseModule):
         self.analyzing = False
 
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(3, weight=1)
+        self.grid_rowconfigure(4, weight=1)
 
         self.title_lbl = ctk.CTkLabel(self, text=t("title.tracker"), font=font(24, "bold"))
         self.title_lbl.grid(row=0, column=0, padx=24, pady=(20, 8), sticky="w")
@@ -226,11 +228,50 @@ class MiningTrackerModule(BaseModule):
         for i, key in enumerate(["c.total", "c.rewards", "c.avg", "c.biggest"]):
             self.cards[key].grid(row=0, column=i, padx=6, pady=6, sticky="ew")
 
+        self._build_pool_panel()
+
         self.console = LogConsole(self)
-        self.console.grid(row=3, column=0, padx=24, pady=(8, 8), sticky="nsew")
+        self.console.grid(row=4, column=0, padx=24, pady=(8, 8), sticky="nsew")
 
         self.status = ctk.CTkLabel(self, text=t("st.ready"), anchor="w", text_color=COLORS["muted"])
-        self.status.grid(row=4, column=0, padx=26, pady=(0, 14), sticky="ew")
+        self.status.grid(row=5, column=0, padx=26, pady=(0, 14), sticky="ew")
+
+    def _build_pool_panel(self):
+        panel = ctk.CTkFrame(self, corner_radius=14, fg_color=COLORS["card"])
+        panel.grid(row=3, column=0, padx=24, pady=(2, 6), sticky="ew")
+        panel.grid_columnconfigure(0, weight=1)
+
+        top = ctk.CTkFrame(panel, fg_color="transparent")
+        top.grid(row=0, column=0, padx=14, pady=(12, 6), sticky="ew")
+        top.grid_columnconfigure(1, weight=1)
+        self.pool_stats_title = SectionTitle(top, text=t("track.pool_stats"))
+        self.pool_stats_title.grid(row=0, column=0, padx=(0, 12), sticky="w")
+        self.pool_addr = ctk.CTkEntry(top, placeholder_text=t("track.pool_addr_ph"), height=34)
+        self.pool_addr.grid(row=0, column=1, sticky="ew")
+        self.pool_menu = ctk.CTkOptionMenu(
+            top, values=API_POOLS or ["--"], width=150,
+            fg_color=COLORS["sidebar"], button_color=COLORS["accent_dark"], button_hover_color=COLORS["accent"],
+        )
+        self.pool_menu.set(API_POOLS[0] if API_POOLS else "--")
+        self.pool_menu.grid(row=0, column=2, padx=(8, 0))
+        self.pool_fetch_btn = ctk.CTkButton(top, text=t("track.fetch"), width=100, height=34, command=self.fetch_pool_stats)
+        self.pool_fetch_btn.grid(row=0, column=3, padx=(8, 0))
+
+        res = ctk.CTkFrame(panel, fg_color="transparent")
+        res.grid(row=1, column=0, padx=14, pady=(2, 12), sticky="ew")
+        self.worker_vals = {}
+        cells = [("track.balance", COLORS["accent"]), ("track.immature", COLORS["warn"]),
+                 ("track.paid", COLORS["text"]), ("track.hashrate", COLORS["info"]),
+                 ("track.workers", COLORS["text"])]
+        for i, (key, color) in enumerate(cells):
+            res.grid_columnconfigure(i, weight=1, uniform="w")
+            cell = ctk.CTkFrame(res, fg_color="transparent")
+            cell.grid(row=0, column=i, padx=6, sticky="ew")
+            title_lbl = ctk.CTkLabel(cell, text=t(key).upper(), font=font(10, "bold"), text_color=COLORS["muted"], anchor="w")
+            title_lbl.pack(anchor="w")
+            val_lbl = ctk.CTkLabel(cell, text="--", font=font(15, "bold"), text_color=color, anchor="w")
+            val_lbl.pack(anchor="w")
+            self.worker_vals[key] = (title_lbl, val_lbl)
 
     def retranslate(self):
         if not self.built:
@@ -247,9 +288,48 @@ class MiningTrackerModule(BaseModule):
         self.end.configure(placeholder_text=t("f.end_ph"))
         for key, card in self.cards.items():
             card.set_title(t(key))
+        self.pool_stats_title.configure(text=t("track.pool_stats"))
+        self.pool_addr.configure(placeholder_text=t("track.pool_addr_ph"))
+        self.pool_fetch_btn.configure(text=t("track.fetch"))
+        for key, (title_lbl, val_lbl) in self.worker_vals.items():
+            title_lbl.configure(text=t(key).upper())
         if not self.analyzing:
             self.btn.configure(text=t("b.analyze"))
             self.status.configure(text=t("st.ready"))
+
+    def fetch_pool_stats(self):
+        address = self.pool_addr.get().strip() or self.address.get().strip()
+        pool = self.pool_menu.get()
+        if not address:
+            self.status.configure(text=t("track.worker_hint"))
+            return
+        if pool not in API_POOLS:
+            self.status.configure(text=t("track.worker_hint"))
+            return
+        self.pool_addr.delete(0, "end")
+        self.pool_addr.insert(0, address)
+        self.pool_fetch_btn.configure(state="disabled")
+        threading.Thread(target=self._fetch_worker, args=(pool, address), daemon=True).start()
+
+    def _fetch_worker(self, pool, address):
+        try:
+            worker = self.datalayer.get_worker_stats(pool, address)
+            if worker is None or not worker.ok:
+                self.status.configure(text=t("track.worker_none"))
+                for _, val in self.worker_vals.values():
+                    val.configure(text="--")
+            else:
+                self.worker_vals["track.balance"][1].configure(text=f"{format_btcz(worker.balance, 4)}")
+                self.worker_vals["track.immature"][1].configure(text=f"{format_btcz(worker.immature, 4)}")
+                self.worker_vals["track.paid"][1].configure(text=f"{format_btcz(worker.paid, 2)}")
+                self.worker_vals["track.hashrate"][1].configure(
+                    text=f"~ {format_hashrate(worker.total_hash / NOMP_HASH_DIVISOR)}")
+                self.worker_vals["track.workers"][1].configure(text=str(worker.workers))
+                self.status.configure(text=f"{pool} | {address}")
+        except Exception as exc:
+            self.status.configure(text=t("track.worker_error", e=exc))
+        finally:
+            self.pool_fetch_btn.configure(state="normal")
 
     def log(self, text, tag="info"):
         self.console.log(text, tag)

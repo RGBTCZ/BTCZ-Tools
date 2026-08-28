@@ -87,6 +87,19 @@ class PoolLive:
 
 
 @dataclass
+class PoolWorker:
+    miner: str = ""
+    total_hash: float = 0.0
+    total_shares: float = 0.0
+    network_sols: float = 0.0
+    immature: float = 0.0
+    balance: float = 0.0
+    paid: float = 0.0
+    workers: int = 0
+    ok: bool = False
+
+
+@dataclass
 class DailyResult:
     date: str = ""
     total: float = 0.0

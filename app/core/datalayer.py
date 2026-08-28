@@ -6,7 +6,7 @@ from app.core.cache import TTLCache
 from app.core.errors import DataError, NetworkError
 from app.core.i18n import t
 from app.core.logger import get_logger
-from app.models.models import AddressStats, Block, NetworkStats, PoolLive, PoolStat, Transaction
+from app.models.models import AddressStats, Block, NetworkStats, PoolLive, PoolStat, PoolWorker, Transaction
 from app.utils.format import block_reward, compute_nethash, miner_reward
 from config.config import (
     BLOCK_TIME_TARGET,
@@ -326,6 +326,26 @@ class BTCZDataLayer:
                 result[pool["name"]] = PoolLive(name=pool["name"], ok=False)
         self.cache.set("pool_live", result, CACHE_TTL["pools"])
         return result
+
+    def get_worker_stats(self, pool_name, address):
+        api = None
+        for pool in POOLS:
+            if pool["name"] == pool_name:
+                api = pool.get("api_base")
+                break
+        if not api:
+            return None
+        key = f"worker:{pool_name}:{address}"
+        cached = self.cache.get(key)
+        if cached:
+            return cached
+        try:
+            worker = self.nomp.get_worker(api, address)
+        except (NetworkError, DataError) as exc:
+            log.warning("worker stats %s/%s failed: %s", pool_name, address, exc)
+            return PoolWorker(miner=address, ok=False)
+        self.cache.set(key, worker, CACHE_TTL["pools"])
+        return worker
 
     def get_market(self):
         cached = self.cache.get("market")
