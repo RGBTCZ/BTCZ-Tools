@@ -10,6 +10,7 @@ from app.core.i18n import LANGUAGE_LABELS, LANGUAGES, i18n, t
 from app.ui.theme import COLORS, apply_theme, font
 from app.utils.assets import apply_window_icon, ensure_logo, load_logo_image
 from config.config import APP_NAME, APP_VERSION
+from modules.assistant.assistant import AssistantModule
 from modules.dashboard.dashboard import DashboardModule
 from modules.history.history import HistoryModule
 from modules.mining_tracker.tracker import MiningTrackerModule
@@ -60,6 +61,7 @@ class BTCZToolsApp(ctk.CTk):
             PoolExplorerModule,
             NetworkExplorerModule,
             HistoryModule,
+            AssistantModule,
         ]
 
         self.modules = {}
