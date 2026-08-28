@@ -201,7 +201,7 @@ class ProfitabilityModule(BaseModule):
             pass
         try:
             self.market = self.datalayer.get_market()
-            self.nd["c.price_eur"].update_value(format_fiat(self.market.price_eur, "EUR", 8))
+            self.nd["c.price_eur"].update_value(format_btcz(self.market.price_eur, 8))
         except Exception:
             pass
 

@@ -64,6 +64,7 @@ class BTCZToolsApp(ctk.CTk):
         self.buttons = {}
         for index, cls in enumerate(module_classes, start=1):
             module = cls(self.container, self.datalayer)
+            module.navigate = self.show
             module.grid(row=0, column=0, sticky="nsew")
             self.modules[cls.key] = module
 

@@ -12,6 +12,7 @@ class BaseModule(ctk.CTkFrame):
         super().__init__(master, fg_color=COLORS["bg"])
         self.datalayer = datalayer
         self.built = False
+        self.navigate = None
 
     def build(self):
         pass
