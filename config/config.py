@@ -34,7 +34,7 @@ POOL_WINDOW = 100
 NOMP_HASH_DIVISOR = 500000
 
 POOLS = [
-    {"name": "zpool.ca", "url": "https://zpool.ca", "fee": 1.0, "scheme": "PROP", "min_pay": 10, "active": True, "tags": ["zpool"]},
+    {"name": "zpool.ca", "url": "https://zpool.ca", "api_currencies": "https://www.zpool.ca/api/currencies", "fee": 1.0, "scheme": "PROP", "min_pay": 10, "active": True, "tags": ["zpool"]},
     {"name": "SW Groupe", "url": "https://swgroupe.fr", "api_base": "https://swgroupe.fr/api", "fee": 0.5, "scheme": "PPLNS", "min_pay": None, "active": True, "tags": ["swgroupe", "swgroup"]},
     {"name": "Dark Fiber Mines", "url": "https://btcz.darkfibermines.com", "api_base": "https://btcz.darkfibermines.com/api", "fee": 1.0, "scheme": "PROP / SOLO", "min_pay": None, "active": True, "tags": ["darkfiber", "dfm"]},
     {"name": "HimPool", "url": "https://himpool.com", "fee": 1.0, "scheme": "PPLNS / SOLO 2%", "min_pay": 250, "active": False, "tags": ["himpool"]},

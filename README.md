@@ -39,7 +39,7 @@ BTCZTools/
 - **Network / blocks / miner** — `explorer.btcz.rocks` (Insight, `getInfo` + `minedBy`)
 - **Addresses** — `explorer.getbtcz.com` (primary) with `btcz.rocks` as fallback
 - **Price** — CoinGecko (`bitcoinz`, EUR + USD)
-- **Live pool stats** — each pool's own z-nomp API (`/api/stats`): hashrate, miners, workers, blocks (SW Groupe, Dark Fiber Mines)
+- **Live pool stats** — each pool's own API: z-nomp (`/api/stats`) for SW Groupe & Dark Fiber Mines, zpool/yiimp (`/api/currencies`) for zpool.ca (hashrate, workers, network share)
 
 The data layer automatically fails over to the backup source if the primary one is down.
 

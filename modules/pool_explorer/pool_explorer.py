@@ -146,19 +146,19 @@ class PoolExplorerModule(BaseModule):
             livef.grid(row=row, column=0, sticky="ew")
             row += 1
             self._header_row(livef, [("pool.col_pool", 3), ("pool.col_hashrate", 2),
-                                     ("pool.col_miners", 1), ("pool.col_workers", 1), ("pool.col_confirmed", 1)])
+                                     ("pool.col_share", 2), ("pool.col_workers", 1)])
+            net_hashps = data.get("network_hashps", 0) or 0
             live_rows.sort(key=lambda lv: lv.hashps, reverse=True)
             for i, lv in enumerate(live_rows, start=1):
+                share = (lv.hashps / net_hashps) if net_hashps > 0 else 0
                 ctk.CTkLabel(livef, text=lv.name, font=font(13, "bold"), text_color=COLORS["accent"], anchor="w").grid(
                     row=i, column=0, padx=8, pady=4, sticky="w")
                 ctk.CTkLabel(livef, text=format_hashrate(lv.hashps), font=font(12), text_color=COLORS["info"], anchor="w").grid(
                     row=i, column=1, padx=8, pady=4, sticky="w")
-                ctk.CTkLabel(livef, text=str(lv.miner_count), font=font(12), text_color=COLORS["text"], anchor="w").grid(
+                ctk.CTkLabel(livef, text=f"{share * 100:.1f}%", font=font(12), text_color=COLORS["text"], anchor="w").grid(
                     row=i, column=2, padx=8, pady=4, sticky="w")
                 ctk.CTkLabel(livef, text=str(lv.worker_count), font=font(12), text_color=COLORS["text"], anchor="w").grid(
                     row=i, column=3, padx=8, pady=4, sticky="w")
-                ctk.CTkLabel(livef, text=f"{lv.blocks_confirmed:,}", font=font(12), text_color=COLORS["mine"], anchor="w").grid(
-                    row=i, column=4, padx=8, pady=4, sticky="w")
         else:
             ctk.CTkLabel(self.body, text=t("pool.live_none"), font=font(12), text_color=COLORS["muted"], anchor="w").grid(
                 row=row, column=0, sticky="w")
