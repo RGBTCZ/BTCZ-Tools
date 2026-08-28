@@ -1,6 +1,7 @@
 from app.core.errors import http_get_json
 from app.models.models import PoolLive, PoolWorker
 from app.utils.format import parse_hashrate_string
+from config.config import NOMP_HASH_DIVISOR
 
 
 class NompClient:
@@ -28,9 +29,11 @@ class NompClient:
         if not data or not data.get("miner"):
             return PoolWorker(miner=address, ok=False)
         workers = data.get("workers", {}) or {}
+        total_hash = float(data.get("totalHash", 0) or 0)
         return PoolWorker(
             miner=data.get("miner", address),
-            total_hash=float(data.get("totalHash", 0) or 0),
+            hashps=total_hash / NOMP_HASH_DIVISOR,
+            total_hash=total_hash,
             total_shares=float(data.get("totalShares", 0) or 0),
             network_sols=float(data.get("networkSols", 0) or 0),
             immature=float(data.get("immature", 0) or 0),

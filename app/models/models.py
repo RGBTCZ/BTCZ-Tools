@@ -89,6 +89,7 @@ class PoolLive:
 @dataclass
 class PoolWorker:
     miner: str = ""
+    hashps: float = 0.0
     total_hash: float = 0.0
     total_shares: float = 0.0
     network_sols: float = 0.0

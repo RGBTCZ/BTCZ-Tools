@@ -334,19 +334,24 @@ class BTCZDataLayer:
         return result
 
     def get_worker_stats(self, pool_name, address):
-        api = None
+        target = None
         for pool in POOLS:
             if pool["name"] == pool_name:
-                api = pool.get("api_base")
+                target = pool
                 break
-        if not api:
+        if not target:
             return None
         key = f"worker:{pool_name}:{address}"
         cached = self.cache.get(key)
         if cached:
             return cached
         try:
-            worker = self.nomp.get_worker(api, address)
+            if target.get("api_base"):
+                worker = self.nomp.get_worker(target["api_base"], address)
+            elif target.get("api_miningcore"):
+                worker = self.miningcore.get_miner(target["api_miningcore"], address)
+            else:
+                return None
         except (NetworkError, DataError) as exc:
             log.warning("worker stats %s/%s failed: %s", pool_name, address, exc)
             return PoolWorker(miner=address, ok=False)

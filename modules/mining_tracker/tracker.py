@@ -12,10 +12,10 @@ from app.core.i18n import t
 from app.ui.theme import COLORS, font
 from app.ui.widgets import LogConsole, SectionTitle, StatCard
 from app.utils.format import format_btcz, format_hashrate
-from config.config import MINING_THRESHOLD, NOMP_HASH_DIVISOR, POOLS
+from config.config import MINING_THRESHOLD, POOLS
 from modules.base_module import BaseModule
 
-API_POOLS = [p["name"] for p in POOLS if p.get("api_base")]
+API_POOLS = [p["name"] for p in POOLS if p.get("api_base") or p.get("api_miningcore")]
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -323,7 +323,7 @@ class MiningTrackerModule(BaseModule):
                 self.worker_vals["track.immature"][1].configure(text=f"{format_btcz(worker.immature, 4)}")
                 self.worker_vals["track.paid"][1].configure(text=f"{format_btcz(worker.paid, 2)}")
                 self.worker_vals["track.hashrate"][1].configure(
-                    text=f"~ {format_hashrate(worker.total_hash / NOMP_HASH_DIVISOR)}")
+                    text=f"~ {format_hashrate(worker.hashps)}")
                 self.worker_vals["track.workers"][1].configure(text=str(worker.workers))
                 self.status.configure(text=f"{pool} | {address}")
         except Exception as exc:
