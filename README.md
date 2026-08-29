@@ -18,7 +18,9 @@ Prefer running from source? See [Installation](#installation) below.
 **Multilingual**: 🇬🇧 EN (default), 🇫🇷 FR, 🇪🇸 ES, 🇩🇪 DE — switch on the fly from the sidebar selector, language remembered in `data/settings.json`.
 **BTCZ logo** downloaded on first launch and cached in `data/` (window icon + sidebar).
 
-![BTCZ Tools](./screenshot.png)
+<p align="center">
+  <img src="./screenshot.png" alt="BTCZ Tools" width="760">
+</p>
 
 ## Modules
 
@@ -31,6 +33,19 @@ Prefer running from source? See [Installation](#installation) below.
 | 🌐 Network Explorer | working | Network stats + latest blocks (with miner) |
 | 📈 History | working | Monthly mining history, this/last month comparison, projection (1/3/6/12 months), snapshot-based alerts (difficulty change, new rewards) |
 | 🚀 Assistant | working | Rule-based analysis of your setup: monthly profit, break-even, electricity weight, best active pool to switch to, network share, hardware ROI |
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="50%"><a href="./screenshot-dashboard.png"><img src="./screenshot-dashboard.png" width="420" alt="Dashboard"></a><br><sub><b>📊 Dashboard</b></sub></td>
+    <td align="center" width="50%"><a href="./screenshot-pool-explorer.png"><img src="./screenshot-pool-explorer.png" width="420" alt="Pool Explorer"></a><br><sub><b>🌊 Pool Explorer</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./screenshot-history.png"><img src="./screenshot-history.png" width="420" alt="History"></a><br><sub><b>📈 History</b></sub></td>
+    <td align="center" width="50%"><a href="./screenshot-mining-assistant.png"><img src="./screenshot-mining-assistant.png" width="420" alt="Mining Assistant"></a><br><sub><b>🚀 Mining Assistant</b></sub></td>
+  </tr>
+</table>
 
 ## Architecture
 
