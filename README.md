@@ -17,6 +17,7 @@ Prefer running from source? See [Installation](#installation) below.
 
 **Multilingual**: 🇬🇧 EN (default), 🇫🇷 FR, 🇪🇸 ES, 🇩🇪 DE — switch on the fly from the sidebar selector, language remembered in `data/settings.json`.
 **BTCZ logo** downloaded on first launch and cached in `data/` (window icon + sidebar).
+**Auto-update**: on launch the app checks GitHub for a newer release and, if one exists, offers to download the new `.exe` for you — silent when you're already up to date.
 
 <p align="center">
   <img src="./screenshot.png" alt="BTCZ Tools" width="760">
@@ -33,6 +34,7 @@ Prefer running from source? See [Installation](#installation) below.
 | 🌐 Network Explorer | working | Network stats + latest blocks (with miner) |
 | 📈 History | working | Monthly mining history, this/last month comparison, projection (1/3/6/12 months), snapshot-based alerts (difficulty change, new rewards) |
 | 🚀 Assistant | working | Rule-based analysis of your setup: monthly profit, break-even, electricity weight, best active pool to switch to, network share, hardware ROI |
+| 🐳 Holder | working | Holder cockpit for one or more t1 addresses: total stack + live € value, sea-creature rank (🦐 Shrimp → 🐳 Whale) with progress to the next tier, moonshot price simulator, wealth milestones, share of circulating supply — plus a shareable PNG card (square + landscape, with an optional "hide amounts" mode) |
 
 ## Screenshots
 
@@ -54,7 +56,7 @@ BTCZTools/
 ├── app/
 │   ├── main.py            entry point + navigation
 │   ├── ui/                theme and reusable widgets
-│   ├── core/              data layer, TTL cache, i18n, settings, logs, errors
+│   ├── core/              data layer, TTL cache, i18n, settings, logs, errors, updater
 │   ├── api/               clients (insight, getbtcz, market)
 │   ├── models/            shared models (NetworkStats, Block, ...)
 │   └── utils/             formatting, mining calculations, assets
@@ -67,8 +69,10 @@ BTCZTools/
 
 - **Network / blocks / miner** — `explorer.btcz.rocks` (Insight, `getInfo` + `minedBy`)
 - **Addresses** — `explorer.getbtcz.com` (primary) with `btcz.rocks` as fallback
-- **Price** — CoinGecko (`bitcoinz`, EUR + USD)
+- **Price & ATH** — CoinGecko (`bitcoinz`, EUR + USD; `/coins` for all-time high)
+- **Circulating supply** — computed on-chain from the block height and the emission schedule (halving every 840 000 blocks), so it always matches the explorer without an extra request
 - **Live pool stats** — each pool's own API: z-nomp (`/api/stats`) for SW Groupe & Dark Fiber Mines, zpool/yiimp (`/api/currencies`) for zpool.ca (hashrate, workers, network share)
+- **Updates** — GitHub Releases API (`/releases/latest`) checked once at launch
 
 The data layer automatically fails over to the backup source if the primary one is down.
 
@@ -100,6 +104,8 @@ Or simply run `./run_btcz.sh` — it creates the virtual environment, installs t
 Phase 0 (architecture + data layer) ✅ → Phase 1 (Mining Tracker) ✅ → Phase 2 (Profitability) ✅ → Phase 3 (Pool Explorer + live pool APIs) ✅ → Phase 4 (Network Explorer) ✅ → Phase 5 (Dashboard) ✅ → Phase 6 (alerts + history) ✅ → Phase 7 (Mining Assistant) ✅
 
 **The full roadmap is complete.** 🎉
+
+Beyond the roadmap, BTCZ Tools keeps growing for the community: the **🐳 Holder** cockpit with its shareable card, and a **built-in auto-updater** that keeps everyone on the latest release.
 
 ## License
 

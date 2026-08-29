@@ -3,6 +3,21 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-08-29
+
+Adds a cockpit for holders, a shareable flex card, and a built-in auto-updater.
+
+### Added
+- **🐳 Holder** — a cockpit for one or more t1 addresses: total stack with live € value, a sea-creature rank (🦐 Shrimp → 🦀 Crab → 🐟 Fish → 🐬 Dolphin → 🦈 Shark → 🐳 Whale) with a progress bar to the next tier, a moonshot price simulator (slider over target prices, with the ATH line), wealth milestones (the BTCZ price needed to reach 1k / 10k / 100k / 1M €), and your share of the circulating supply. Addresses are managed with an editable dropdown (add / remove), like the Mining Tracker.
+- **Shareable card** — export a premium PNG of your holder status in two formats at once (1080×1080 square and 1200×630 landscape), with an optional **Hide amounts** switch that shows only your rank and supply share.
+- **Auto-update** — on launch the app checks the GitHub Releases API for a newer version and, if one exists, opens a dialog that explains the process and downloads the new `.exe` into a folder you choose. Silent when you're already up to date.
+
+### Changed
+- **Circulating supply** is now computed on-chain from the block height and the emission schedule instead of CoinGecko, so it always matches the explorer (and needs no extra request).
+- The sidebar now lays out its rows dynamically, so adding modules never overlaps the language selector.
+
+[1.2.0]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.2.0
+
 ## [1.1.1] - 2026-08-28
 
 First Windows binary: a standalone `BTCZ-Tools.exe` you can download and run without Python.
