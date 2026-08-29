@@ -6,12 +6,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import customtkinter as ctk
 
+from app.core import settings
 from app.core.datalayer import BTCZDataLayer
 from app.core.i18n import LANGUAGE_LABELS, LANGUAGES, i18n, t
+from app.core.monitor import Monitor
+from app.core.notifier import Notifier
 from app.core.updater import check_for_update
 from app.ui.theme import COLORS, apply_theme, font
 from app.ui.update_dialog import UpdateDialog
-from app.utils.assets import apply_window_icon, ensure_logo, load_logo_image
+from app.utils.assets import LOGO_PNG, apply_window_icon, ensure_logo, load_logo_image
 from config.config import APP_NAME, APP_VERSION
 from modules.assistant.assistant import AssistantModule
 from modules.dashboard.dashboard import DashboardModule
@@ -20,6 +23,7 @@ from modules.history.history import HistoryModule
 from modules.holder.holder import HolderModule
 from modules.mining_tracker.tracker import MiningTrackerModule
 from modules.network_explorer.network_explorer import NetworkExplorerModule
+from modules.notifications.notifications import NotificationsModule
 from modules.pool_explorer.pool_explorer import PoolExplorerModule
 from modules.profitability.profitability import ProfitabilityModule
 
@@ -36,6 +40,9 @@ class BTCZToolsApp(ctk.CTk):
         apply_window_icon(self)
 
         self.datalayer = BTCZDataLayer()
+        self.notifier = Notifier(image_path=str(LOGO_PNG) if LOGO_PNG.exists() else None)
+        self.notifier.attach(self)
+        self.monitor = Monitor(self.datalayer, self.notifier)
 
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -67,6 +74,7 @@ class BTCZToolsApp(ctk.CTk):
             HistoryModule,
             HolderModule,
             HalvingModule,
+            NotificationsModule,
             AssistantModule,
         ]
 
@@ -75,6 +83,8 @@ class BTCZToolsApp(ctk.CTk):
         for index, cls in enumerate(module_classes, start=1):
             module = cls(self.container, self.datalayer)
             module.navigate = self.show
+            if hasattr(module, "set_services"):
+                module.set_services(self.notifier, self.monitor)
             module.grid(row=0, column=0, sticky="nsew")
             self.modules[cls.key] = module
 
@@ -118,8 +128,42 @@ class BTCZToolsApp(ctk.CTk):
         self.active = None
         self.show(DashboardModule.key)
 
+        self.notifier.set_listener(self._on_notification)
+        self.protocol("WM_DELETE_WINDOW", self.hide_to_tray)
+        self.monitor.start()
+
         self._update_shown = False
         threading.Thread(target=self._check_update, daemon=True).start()
+
+    def _on_notification(self, title, message):
+        module = self.modules.get("notifications")
+        if module is not None and getattr(module, "built", False):
+            self.after(0, module._render_history)
+
+    def hide_to_tray(self):
+        if not self.notifier.available():
+            self.quit_app()
+            return
+        self.withdraw()
+        if not settings.get("tray_notice_shown", False):
+            self.notifier.notify(t("notif.tray_notice_title"), t("notif.tray_notice_body"))
+            settings.set("tray_notice_shown", True)
+
+    def restore_from_tray(self):
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+
+    def quit_app(self):
+        try:
+            self.monitor.stop()
+        except Exception:
+            pass
+        try:
+            self.notifier.stop()
+        except Exception:
+            pass
+        self.destroy()
 
     def _check_update(self):
         try:

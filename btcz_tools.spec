@@ -3,6 +3,7 @@ import os
 from PyInstaller.utils.hooks import collect_all
 
 datas, binaries, hiddenimports = collect_all("customtkinter")
+hiddenimports += ["pystray._win32", "PIL.ImageDraw", "PIL.ImageFont"]
 
 icon_path = os.path.join(SPECPATH, "btcz_logo.ico")
 icon_file = icon_path if os.path.exists(icon_path) else None

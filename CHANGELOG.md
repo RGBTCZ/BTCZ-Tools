@@ -3,6 +3,20 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-08-29
+
+Turns BTCZ Tools into an always-on companion with a system tray and desktop alerts.
+
+### Added
+- **🔔 Notifications center** — a dedicated tab to enable and tune four desktop alerts, with a live history of what fired and a "send a test notification" button.
+- **Background monitor** — a lightweight watcher that runs on its own thread and fires a desktop toast on the right transition (never repeating): a **price target** reached (rising / falling / any), a **payment received** on a tracked Mining Tracker address, a **rig going offline** (a pool worker's hashrate dropping to 0, with a "back online" notice), and a **difficulty jump** past a threshold you set. The check interval is configurable.
+- **System tray** — the app now lives in the tray (pystray): closing the window minimizes it there and keeps monitoring, with a one-time heads-up the first time. Right-click → Show / Quit. The tray icon also carries the toast notifications.
+
+### Notes
+- The tray and native toasts use the Windows tray backend in the packaged `.exe`; where no system tray is available, alerts still appear in the in-app history while the app is open.
+
+[1.4.0]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.4.0
+
 ## [1.3.0] - 2026-08-29
 
 Adds a premium Halving countdown tab.
