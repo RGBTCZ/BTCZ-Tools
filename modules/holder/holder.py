@@ -63,11 +63,18 @@ class HolderModule(BaseModule):
         form = ctk.CTkFrame(self, corner_radius=16, fg_color=COLORS["card"])
         form.grid(row=1, column=0, padx=24, pady=(6, 4), sticky="ew")
         form.grid_columnconfigure(0, weight=1)
-        self.addr_entry = ctk.CTkEntry(form, placeholder_text=t("holder.add_addr"), height=38)
-        self.addr_entry.grid(row=0, column=0, padx=(14, 8), pady=14, sticky="ew")
-        self.addr_entry.bind("<Return>", lambda _e: self.add_address())
-        self.add_btn = ctk.CTkButton(form, text=t("holder.add"), width=120, height=38, command=self.add_address)
-        self.add_btn.grid(row=0, column=1, padx=(0, 14), pady=14)
+        self.lbl_addr = ctk.CTkLabel(form, text=t("holder.add_addr"), text_color=COLORS["muted"])
+        self.lbl_addr.grid(row=0, column=0, columnspan=3, padx=14, pady=(12, 2), sticky="w")
+        self.addr_box = ctk.CTkComboBox(form, values=load_holder_addresses() or [""], height=38)
+        self.addr_box.set("")
+        self.addr_box.grid(row=1, column=0, padx=(14, 8), pady=(2, 14), sticky="ew")
+        self.addr_box.bind("<Return>", lambda _e: self.add_address())
+        self.add_btn = ctk.CTkButton(form, text=t("holder.add"), width=110, height=38, command=self.add_address)
+        self.add_btn.grid(row=1, column=1, padx=(0, 8), pady=(2, 14))
+        self.remove_btn = ctk.CTkButton(form, text=t("b.remove"), width=110, height=38,
+                                        fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"],
+                                        command=self.remove_selected)
+        self.remove_btn.grid(row=1, column=2, padx=(0, 14), pady=(2, 14))
 
         self.body = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.body.grid(row=2, column=0, padx=20, pady=(6, 6), sticky="nsew")
@@ -81,23 +88,33 @@ class HolderModule(BaseModule):
             return
         self.title_lbl.configure(text=t("holder.title"))
         self.refresh_btn.configure(text=t("common.refresh"))
-        self.addr_entry.configure(placeholder_text=t("holder.add_addr"))
+        self.lbl_addr.configure(text=t("holder.add_addr"))
         self.add_btn.configure(text=t("holder.add"))
+        self.remove_btn.configure(text=t("b.remove"))
         self.refresh()
 
+    def _refresh_box(self, selected=""):
+        addresses = load_holder_addresses()
+        self.addr_box.configure(values=addresses or [""])
+        self.addr_box.set(selected)
+
     def add_address(self):
-        addr = self.addr_entry.get().strip()
+        addr = self.addr_box.get().strip()
         if not addr:
             return
         addresses = load_holder_addresses()
         addresses.append(addr)
         save_holder_addresses(addresses)
-        self.addr_entry.delete(0, "end")
+        self._refresh_box("")
         self.refresh()
 
-    def remove_address(self, addr):
+    def remove_selected(self):
+        addr = self.addr_box.get().strip()
+        if not addr:
+            return
         addresses = [a for a in load_holder_addresses() if a != addr]
         save_holder_addresses(addresses)
+        self._refresh_box("")
         self.refresh()
 
     def refresh(self):
@@ -142,18 +159,8 @@ class HolderModule(BaseModule):
 
     def _render(self, addresses):
         self._clear()
+        self.addr_box.configure(values=addresses or [""])
         row = 0
-
-        for addr in addresses:
-            line = ctk.CTkFrame(self.body, fg_color=COLORS["card"], corner_radius=10)
-            line.grid(row=row, column=0, sticky="ew", pady=3)
-            line.grid_columnconfigure(0, weight=1)
-            ctk.CTkLabel(line, text=addr, font=font(12), text_color=COLORS["muted"], anchor="w").grid(
-                row=0, column=0, padx=14, pady=8, sticky="w")
-            ctk.CTkButton(line, text="✕", width=34, height=28, fg_color=COLORS["danger"],
-                          hover_color=COLORS["danger_hover"],
-                          command=lambda a=addr: self.remove_address(a)).grid(row=0, column=1, padx=(0, 10), pady=6)
-            row += 1
 
         value_eur = self.total_btcz * self.price_eur
 
