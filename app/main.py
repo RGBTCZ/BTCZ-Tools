@@ -1,4 +1,5 @@
 import sys
+import threading
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -7,7 +8,9 @@ import customtkinter as ctk
 
 from app.core.datalayer import BTCZDataLayer
 from app.core.i18n import LANGUAGE_LABELS, LANGUAGES, i18n, t
+from app.core.updater import check_for_update
 from app.ui.theme import COLORS, apply_theme, font
+from app.ui.update_dialog import UpdateDialog
 from app.utils.assets import apply_window_icon, ensure_logo, load_logo_image
 from config.config import APP_NAME, APP_VERSION
 from modules.assistant.assistant import AssistantModule
@@ -112,6 +115,26 @@ class BTCZToolsApp(ctk.CTk):
 
         self.active = None
         self.show(DashboardModule.key)
+
+        self._update_shown = False
+        threading.Thread(target=self._check_update, daemon=True).start()
+
+    def _check_update(self):
+        try:
+            info = check_for_update()
+        except Exception:
+            info = None
+        if info:
+            self.after(0, lambda: self._show_update(info))
+
+    def _show_update(self, info):
+        if self._update_shown:
+            return
+        self._update_shown = True
+        try:
+            UpdateDialog(self, info)
+        except Exception:
+            pass
 
     def on_language_change(self, label):
         for code, text in LANGUAGE_LABELS.items():

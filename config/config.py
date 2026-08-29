@@ -60,3 +60,7 @@ MILESTONES_EUR = [1000, 10000, 100000, 1000000]
 
 APP_NAME = "BTCZ Tools"
 APP_VERSION = "1.1.1"
+
+GITHUB_REPO = "RGBTCZ/BTCZ-Tools"
+GITHUB_API_LATEST = "https://api.github.com/repos/RGBTCZ/BTCZ-Tools/releases/latest"
+GITHUB_RELEASES = "https://github.com/RGBTCZ/BTCZ-Tools/releases/latest"
