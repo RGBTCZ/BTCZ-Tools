@@ -1,4 +1,5 @@
 import threading
+from tkinter import filedialog
 
 import customtkinter as ctk
 
@@ -7,6 +8,7 @@ from app.core.i18n import t
 from app.ui.theme import COLORS, font
 from app.ui.widgets import SectionTitle, StatCard
 from app.utils.format import circulating_supply, format_btcz, format_fiat
+from app.utils.share_card import generate_cards
 from config.config import HOLDER_TIERS, MILESTONES_EUR, MOONSHOT_TARGETS_EUR
 from modules.base_module import BaseModule
 
@@ -47,6 +49,7 @@ class HolderModule(BaseModule):
         self.total_btcz = 0.0
         self.price_eur = 0.0
         self.ath_eur = 0.0
+        self.supply = 0.0
         self.loading = False
 
         self.grid_columnconfigure(0, weight=1)
@@ -57,8 +60,14 @@ class HolderModule(BaseModule):
         header.grid_columnconfigure(0, weight=1)
         self.title_lbl = ctk.CTkLabel(header, text=t("holder.title"), font=font(24, "bold"))
         self.title_lbl.grid(row=0, column=0, sticky="w")
+        self.hide_switch = ctk.CTkSwitch(header, text=t("holder.hide_amounts"))
+        self.hide_switch.grid(row=0, column=1, padx=(0, 12), sticky="e")
+        self.share_btn = ctk.CTkButton(header, text=t("holder.share"), width=150,
+                                       fg_color=COLORS["accent_dark"], hover_color=COLORS["accent"],
+                                       command=self.share_card)
+        self.share_btn.grid(row=0, column=2, padx=(0, 8), sticky="e")
         self.refresh_btn = ctk.CTkButton(header, text=t("common.refresh"), width=110, command=self.refresh)
-        self.refresh_btn.grid(row=0, column=1, sticky="e")
+        self.refresh_btn.grid(row=0, column=3, sticky="e")
 
         form = ctk.CTkFrame(self, corner_radius=16, fg_color=COLORS["card"])
         form.grid(row=1, column=0, padx=24, pady=(6, 4), sticky="ew")
@@ -88,6 +97,8 @@ class HolderModule(BaseModule):
             return
         self.title_lbl.configure(text=t("holder.title"))
         self.refresh_btn.configure(text=t("common.refresh"))
+        self.hide_switch.configure(text=t("holder.hide_amounts"))
+        self.share_btn.configure(text=t("holder.share"))
         self.lbl_addr.configure(text=t("holder.add_addr"))
         self.add_btn.configure(text=t("holder.add"))
         self.remove_btn.configure(text=t("b.remove"))
@@ -122,6 +133,31 @@ class HolderModule(BaseModule):
             return
         self.status.configure(text=t("holder.loading"))
         threading.Thread(target=self._load, daemon=True).start()
+
+    def share_card(self):
+        if not load_holder_addresses() or self.supply <= 0:
+            self.status.configure(text=t("holder.no_addr"))
+            return
+        current, _ = tier_for(self.total_btcz)
+        pct = self.total_btcz / self.supply * 100 if self.supply > 0 else 0.0
+        one_in = int(self.supply / self.total_btcz) if self.total_btcz > 0 else 0
+        data = {
+            "emoji": current["emoji"],
+            "tier": t(current["key"]),
+            "stack": self.total_btcz,
+            "value": self.total_btcz * self.price_eur,
+            "supply_pct": pct,
+            "one_in": one_in,
+        }
+        hide = bool(self.hide_switch.get())
+        out_dir = filedialog.askdirectory()
+        if not out_dir:
+            return
+        try:
+            generate_cards(data, out_dir, hide)
+            self.status.configure(text=t("holder.card_saved", p=out_dir))
+        except Exception as exc:
+            self.status.configure(text=t("holder.card_error", e=exc))
 
     def _clear(self):
         for widget in self.body.winfo_children():
