@@ -35,6 +35,7 @@ Prefer running from source? See [Installation](#installation) below.
 | 📈 History | working | Monthly mining history, this/last month comparison, projection (1/3/6/12 months), snapshot-based alerts (difficulty change, new rewards) |
 | 🚀 Assistant | working | Rule-based analysis of your setup: monthly profit, break-even, electricity weight, best active pool to switch to, network share, hardware ROI |
 | 🐳 Holder | working | Holder cockpit for one or more t1 addresses: total stack + live € value, sea-creature rank (🦐 Shrimp → 🐳 Whale) with progress to the next tier, moonshot price simulator, wealth milestones, share of circulating supply — plus a shareable PNG card (square + landscape, with an optional "hide amounts" mode) |
+| ⏳ Halving | working | Live countdown to the next halving (days / hours / minutes / seconds), estimated date, era progress bar, and the block reward transition (current → after halving, with the miner share) — all computed on-chain from the block height |
 
 ## Screenshots
 
@@ -105,7 +106,7 @@ Phase 0 (architecture + data layer) ✅ → Phase 1 (Mining Tracker) ✅ → Pha
 
 **The full roadmap is complete.** 🎉
 
-Beyond the roadmap, BTCZ Tools keeps growing for the community: the **🐳 Holder** cockpit with its shareable card, and a **built-in auto-updater** that keeps everyone on the latest release.
+Beyond the roadmap, BTCZ Tools keeps growing for the community: the **🐳 Holder** cockpit with its shareable card, the **⏳ Halving** countdown, and a **built-in auto-updater** that keeps everyone on the latest release.
 
 ## License
 

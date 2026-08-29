@@ -15,6 +15,7 @@ from app.utils.assets import apply_window_icon, ensure_logo, load_logo_image
 from config.config import APP_NAME, APP_VERSION
 from modules.assistant.assistant import AssistantModule
 from modules.dashboard.dashboard import DashboardModule
+from modules.halving.halving import HalvingModule
 from modules.history.history import HistoryModule
 from modules.holder.holder import HolderModule
 from modules.mining_tracker.tracker import MiningTrackerModule
@@ -65,6 +66,7 @@ class BTCZToolsApp(ctk.CTk):
             NetworkExplorerModule,
             HistoryModule,
             HolderModule,
+            HalvingModule,
             AssistantModule,
         ]
 

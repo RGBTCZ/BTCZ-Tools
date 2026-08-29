@@ -3,6 +3,15 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-08-29
+
+Adds a premium Halving countdown tab.
+
+### Added
+- **⏳ Halving** — a dedicated countdown to the next BitcoinZ halving: a live days / hours / minutes / seconds counter, the estimated date, a progress bar through the current era, and the block-reward transition (current reward → reward after the halving, with the miner share on each side). Everything is derived on-chain from the block height and the emission schedule (halving every 840 000 blocks), so it needs no extra data source and always matches the network.
+
+[1.3.0]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.3.0
+
 ## [1.2.0] - 2026-08-29
 
 Adds a cockpit for holders, a shareable flex card, and a built-in auto-updater.
