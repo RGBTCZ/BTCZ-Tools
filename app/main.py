@@ -13,6 +13,7 @@ from config.config import APP_NAME, APP_VERSION
 from modules.assistant.assistant import AssistantModule
 from modules.dashboard.dashboard import DashboardModule
 from modules.history.history import HistoryModule
+from modules.holder.holder import HolderModule
 from modules.mining_tracker.tracker import MiningTrackerModule
 from modules.network_explorer.network_explorer import NetworkExplorerModule
 from modules.pool_explorer.pool_explorer import PoolExplorerModule
@@ -37,7 +38,6 @@ class BTCZToolsApp(ctk.CTk):
 
         self.sidebar = ctk.CTkFrame(self, width=220, corner_radius=0, fg_color=COLORS["sidebar"])
         self.sidebar.grid(row=0, column=0, sticky="nsw")
-        self.sidebar.grid_rowconfigure(7, weight=1)
 
         brand = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         brand.grid(row=0, column=0, padx=18, pady=(24, 20), sticky="w")
@@ -61,6 +61,7 @@ class BTCZToolsApp(ctk.CTk):
             PoolExplorerModule,
             NetworkExplorerModule,
             HistoryModule,
+            HolderModule,
             AssistantModule,
         ]
 
@@ -87,6 +88,11 @@ class BTCZToolsApp(ctk.CTk):
             btn.grid(row=index, column=0, padx=12, pady=4, sticky="ew")
             self.buttons[cls.key] = (btn, cls)
 
+        spacer_row = len(module_classes) + 1
+        lang_row = spacer_row + 1
+        version_row = spacer_row + 2
+        self.sidebar.grid_rowconfigure(spacer_row, weight=1)
+
         self.lang_menu = ctk.CTkOptionMenu(
             self.sidebar,
             values=[LANGUAGE_LABELS[code] for code in LANGUAGES],
@@ -96,11 +102,11 @@ class BTCZToolsApp(ctk.CTk):
             button_hover_color=COLORS["accent"],
         )
         self.lang_menu.set(LANGUAGE_LABELS[i18n.lang])
-        self.lang_menu.grid(row=8, column=0, padx=12, pady=(4, 8), sticky="ew")
+        self.lang_menu.grid(row=lang_row, column=0, padx=12, pady=(4, 8), sticky="ew")
 
         ctk.CTkLabel(
             self.sidebar, text=f"v{APP_VERSION}", font=font(11), text_color=COLORS["muted"]
-        ).grid(row=9, column=0, padx=20, pady=(0, 16), sticky="w")
+        ).grid(row=version_row, column=0, padx=20, pady=(0, 16), sticky="w")
 
         i18n.add_listener(self.retranslate_all)
 

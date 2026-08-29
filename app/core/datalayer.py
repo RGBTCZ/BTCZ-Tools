@@ -375,3 +375,6 @@ class BTCZDataLayer:
 
     def get_market(self):
         return self._cached("market", CACHE_TTL["market"], self.market.get_price)
+
+    def get_coin_info(self):
+        return self._cached("coin", CACHE_TTL["coin"], self.market.get_coin_info)

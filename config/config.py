@@ -2,6 +2,7 @@ INSIGHT_PRIMARY = "https://explorer.btcz.rocks/api"
 GETBTCZ_BASE = "https://explorer.getbtcz.com/api"
 
 COINGECKO_PRICE = "https://api.coingecko.com/api/v3/simple/price"
+COINGECKO_COIN = "https://api.coingecko.com/api/v3/coins/bitcoinz"
 COINGECKO_ID = "bitcoinz"
 
 LOGO_URLS = [
@@ -19,6 +20,7 @@ CACHE_TTL = {
     "address": 60,
     "address_txs": 60,
     "pools": 300,
+    "coin": 900,
 }
 
 HALVING_INTERVAL = 840000
@@ -43,6 +45,18 @@ POOLS = [
     {"name": "AikaPool", "url": "https://aikapool.com", "fee": 0.5, "scheme": "PROP / SOLO", "min_pay": 0.01, "active": False, "tags": ["aikapool"]},
     {"name": "ZeroPool", "url": "https://zeropool.io", "fee": 2.0, "scheme": "PPLNT / SOLO", "min_pay": None, "active": False, "tags": ["zeropool"]},
 ]
+
+HOLDER_TIERS = [
+    {"key": "tier.shrimp", "emoji": "🦐", "min": 0},
+    {"key": "tier.crab", "emoji": "🦀", "min": 100000},
+    {"key": "tier.fish", "emoji": "🐟", "min": 1000000},
+    {"key": "tier.dolphin", "emoji": "🐬", "min": 10000000},
+    {"key": "tier.shark", "emoji": "🦈", "min": 50000000},
+    {"key": "tier.whale", "emoji": "🐳", "min": 250000000},
+]
+
+MOONSHOT_TARGETS_EUR = [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
+MILESTONES_EUR = [1000, 10000, 100000, 1000000]
 
 APP_NAME = "BTCZ Tools"
 APP_VERSION = "1.1.1"

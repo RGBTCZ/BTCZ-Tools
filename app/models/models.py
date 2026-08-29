@@ -101,6 +101,17 @@ class PoolWorker:
 
 
 @dataclass
+class CoinInfo:
+    price_eur: float = 0.0
+    price_usd: float = 0.0
+    change_24h: float = 0.0
+    ath_eur: float = 0.0
+    ath_usd: float = 0.0
+    circulating_supply: float = 0.0
+    market_cap_eur: float = 0.0
+
+
+@dataclass
 class DailyResult:
     date: str = ""
     total: float = 0.0
