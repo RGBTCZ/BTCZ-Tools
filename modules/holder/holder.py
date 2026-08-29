@@ -6,7 +6,7 @@ from app.core import settings
 from app.core.i18n import t
 from app.ui.theme import COLORS, font
 from app.ui.widgets import SectionTitle, StatCard
-from app.utils.format import format_btcz, format_fiat
+from app.utils.format import circulating_supply, format_btcz, format_fiat
 from config.config import HOLDER_TIERS, MILESTONES_EUR, MOONSHOT_TARGETS_EUR
 from modules.base_module import BaseModule
 
@@ -128,10 +128,11 @@ class HolderModule(BaseModule):
                 except Exception:
                     pass
             info = self.datalayer.get_coin_info()
+            net = self.datalayer.get_network_stats()
             self.total_btcz = total
             self.price_eur = info.price_eur
             self.ath_eur = info.ath_eur
-            self.supply = info.circulating_supply
+            self.supply = circulating_supply(net.height)
             self._render(addresses)
             self.status.configure(text="")
         except Exception as exc:

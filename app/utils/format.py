@@ -12,6 +12,20 @@ def miner_reward(height):
     return block_reward(height) * MINER_REWARD_RATIO
 
 
+def circulating_supply(height):
+    if height <= 0:
+        return 0.0
+    total = 0.0
+    era = 0
+    remaining = int(height)
+    while remaining > 0:
+        blocks = min(remaining, HALVING_INTERVAL)
+        total += blocks * (INITIAL_REWARD / (2 ** era))
+        remaining -= blocks
+        era += 1
+    return total
+
+
 EQUIHASH_CONSTANT = 2 ** 13
 
 SOL_UNITS = {
