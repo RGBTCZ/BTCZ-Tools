@@ -72,6 +72,13 @@ class Notifier:
             except Exception:
                 pass
 
+    def clear_history(self):
+        self.history = []
+
+    def remove_at(self, index):
+        if 0 <= index < len(self.history):
+            del self.history[index]
+
     def _on_show(self, icon=None, item=None):
         if self.app is not None:
             self.app.after(0, self.app.restore_from_tray)

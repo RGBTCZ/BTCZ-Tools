@@ -3,6 +3,18 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.1] - 2026-08-29
+
+UX polish for the notifications center.
+
+### Added
+- **Delete alerts** — each entry in the history has a ✕ to remove it, plus a **Clear all** button.
+
+### Changed
+- **Clearer price target field** — a helper line explains what to type ("the price in € at which BTCZ triggers the alert"), the input shows an example placeholder, and a live **current price** reference is displayed right under it so you know the scale.
+
+[1.4.1]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.4.1
+
 ## [1.4.0] - 2026-08-29
 
 Turns BTCZ Tools into an always-on companion with a system tray and desktop alerts.
