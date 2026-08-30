@@ -21,6 +21,7 @@ class MarketClient:
             price_usd=float(coin.get("usd", 0) or 0),
             change_24h=float(coin.get("eur_24h_change", 0) or 0),
             market_cap_eur=float(coin.get("eur_market_cap", 0) or 0),
+            market_cap_usd=float(coin.get("usd_market_cap", 0) or 0),
             volume_24h_eur=float(coin.get("eur_24h_vol", 0) or 0),
         )
 

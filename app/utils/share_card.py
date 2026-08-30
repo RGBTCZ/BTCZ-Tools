@@ -174,7 +174,7 @@ def _draw_square(data, hide_amounts):
         draw.text((120, y), lab["stack"], font=f_label, fill=MUTED)
         draw.text((120, y + 40), stxt, font=f_stack, fill=TEXT)
         y += 140
-        vtxt = format_fiat(data["value"], "\u20ac", 0)
+        vtxt = format_fiat(data["value"], data.get("sym", "\u20ac"), 0)
         f_v = _fit(draw, vtxt, BOLD_FONTS, 56, col_w)
         draw.text((120, y), lab["value"], font=f_label, fill=MUTED)
         draw.text((120, y + 38), vtxt, font=f_v, fill=GOLD)
@@ -246,7 +246,7 @@ def _draw_wide(data, hide_amounts):
         draw.text((left, y), lab["stack"], font=f_label, fill=MUTED)
         draw.text((left, y + 34), stxt, font=f_stack, fill=TEXT)
         y += 118
-        vtxt = format_fiat(data["value"], "\u20ac", 0)
+        vtxt = format_fiat(data["value"], data.get("sym", "\u20ac"), 0)
         f_v = _fit(draw, vtxt, BOLD_FONTS, 48, col_w)
         draw.text((left, y), lab["value"], font=f_label, fill=MUTED)
         draw.text((left, y + 34), vtxt, font=f_v, fill=GOLD)

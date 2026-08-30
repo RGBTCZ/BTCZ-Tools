@@ -2,6 +2,7 @@ import logging
 import threading
 
 from app.core import settings
+from app.core.currency import currency
 from app.core.i18n import t
 from app.utils.format import format_btcz, format_fiat
 
@@ -75,9 +76,10 @@ class Monitor:
         if target <= 0:
             return
         market = self.datalayer.get_market()
-        cur = float(market.price_eur or 0)
+        cur = float(currency.value(market.price_eur, market.price_usd) or 0)
         if cur <= 0:
             return
+        sym = currency.symbol()
         last = state.get("price")
         state["price"] = cur
         if last is None:
@@ -90,7 +92,7 @@ class Monitor:
             arrow = "▲" if cur >= last else "▼"
             self.notifier.notify(
                 t("notif.price_title"),
-                t("notif.price_body", p=format_fiat(cur, "€", 8), t=format_fiat(target, "€", 8), a=arrow),
+                t("notif.price_body", p=format_fiat(cur, sym, 8), t=format_fiat(target, sym, 8), a=arrow),
             )
 
     def _check_payout(self, state):

@@ -18,6 +18,7 @@ Prefer running from source? See [Installation](#installation) below.
 **Multilingual**: 🇬🇧 EN (default), 🇫🇷 FR, 🇪🇸 ES, 🇩🇪 DE — switch on the fly from the sidebar selector, language remembered in `data/settings.json`.
 **BTCZ logo** downloaded on first launch and cached in `data/` (window icon + sidebar).
 **Auto-update**: on launch the app checks GitHub for a newer release and, if one exists, offers to download the new `.exe` for you — silent when you're already up to date.
+**Currency**: a **€ / $** switch in the sidebar flips every fiat value across the whole app (market, portfolio, profitability, alerts) between EUR and USD, remembered in `data/settings.json`.
 
 <p align="center">
   <img src="./screenshot.png" alt="BTCZ Tools" width="760">

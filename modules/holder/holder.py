@@ -4,6 +4,7 @@ from tkinter import filedialog
 import customtkinter as ctk
 
 from app.core import settings
+from app.core.currency import currency
 from app.core.i18n import t
 from app.ui.theme import COLORS, font
 from app.ui.widgets import SectionTitle, StatCard
@@ -48,7 +49,9 @@ class HolderModule(BaseModule):
     def build(self):
         self.total_btcz = 0.0
         self.price_eur = 0.0
+        self.price_usd = 0.0
         self.ath_eur = 0.0
+        self.ath_usd = 0.0
         self.supply = 0.0
         self.loading = False
 
@@ -145,7 +148,8 @@ class HolderModule(BaseModule):
             "emoji": current["emoji"],
             "tier": t(current["key"]),
             "stack": self.total_btcz,
-            "value": self.total_btcz * self.price_eur,
+            "value": self.total_btcz * currency.value(self.price_eur, self.price_usd),
+            "sym": currency.symbol(),
             "supply_pct": pct,
             "one_in": one_in,
         }
@@ -184,7 +188,9 @@ class HolderModule(BaseModule):
             net = self.datalayer.get_network_stats()
             self.total_btcz = total
             self.price_eur = info.price_eur
+            self.price_usd = info.price_usd
             self.ath_eur = info.ath_eur
+            self.ath_usd = info.ath_usd
             self.supply = circulating_supply(net.height)
             self._render(addresses)
             self.status.configure(text="")
@@ -198,7 +204,9 @@ class HolderModule(BaseModule):
         self.addr_box.configure(values=addresses or [""])
         row = 0
 
-        value_eur = self.total_btcz * self.price_eur
+        sym = currency.symbol()
+        price = currency.value(self.price_eur, self.price_usd)
+        value_fiat = self.total_btcz * price
 
         SectionTitle(self.body, text=t("sec.stack")).grid(row=row, column=0, pady=(16, 6), sticky="w")
         row += 1
@@ -211,7 +219,7 @@ class HolderModule(BaseModule):
         c_stack.update_value(format_btcz(self.total_btcz, 2), accent=COLORS["accent"])
         c_stack.grid(row=0, column=0, padx=6, pady=6, sticky="ew")
         c_val = StatCard(stack, t("holder.value"))
-        c_val.update_value(format_fiat(value_eur, "€"), accent=COLORS["mine"])
+        c_val.update_value(format_fiat(value_fiat, sym), accent=COLORS["mine"])
         c_val.grid(row=0, column=1, padx=6, pady=6, sticky="ew")
 
         current, nxt = tier_for(self.total_btcz)
@@ -273,12 +281,12 @@ class HolderModule(BaseModule):
         for i in range(len(MILESTONES_EUR)):
             miles.grid_columnconfigure(i, weight=1, uniform="mile")
         for i, target in enumerate(MILESTONES_EUR):
-            card = StatCard(miles, format_fiat(target, "€", 0))
-            if value_eur >= target:
+            card = StatCard(miles, format_fiat(target, sym, 0))
+            if value_fiat >= target:
                 card.update_value(t("holder.reached"), accent=COLORS["ok"])
             elif self.total_btcz > 0:
                 need = target / self.total_btcz
-                card.update_value(t("holder.need_price", p=f"{need:.6f}"), accent=COLORS["mine"])
+                card.update_value(t("holder.need_price", p=f"{need:.6f}", c=sym), accent=COLORS["mine"])
             else:
                 card.update_value("--")
             card.grid(row=0, column=i, padx=6, pady=6, sticky="ew")
@@ -299,18 +307,21 @@ class HolderModule(BaseModule):
         idx = int(round(float(value)))
         idx = max(0, min(len(MOONSHOT_TARGETS_EUR) - 1, idx))
         target = MOONSHOT_TARGETS_EUR[idx]
+        sym = currency.symbol()
+        price = currency.value(self.price_eur, self.price_usd)
+        ath = currency.value(self.ath_eur, self.ath_usd)
         stack_value = self.total_btcz * target
-        self.moon_price.configure(text=t("holder.at_price", p=f"{target:g}"))
-        self.moon_value.configure(text=format_fiat(stack_value, "€"))
-        if self.price_eur > 0:
-            mult = target / self.price_eur
+        self.moon_price.configure(text=t("holder.at_price", p=f"{target:g}", c=sym))
+        self.moon_value.configure(text=format_fiat(stack_value, sym))
+        if price > 0:
+            mult = target / price
             self.moon_mult.configure(text=t("holder.multiplier", x=f"×{mult:,.0f}"))
         else:
             self.moon_mult.configure(text="")
-        if self.ath_eur > 0:
-            ath_value = self.total_btcz * self.ath_eur
-            ath_mult = (self.ath_eur / self.price_eur) if self.price_eur > 0 else 0
-            self.moon_ath.configure(text=t("holder.ath", p=f"{self.ath_eur:g}",
-                                          v=format_fiat(ath_value, "€"), x=f"×{ath_mult:,.0f}"))
+        if ath > 0:
+            ath_value = self.total_btcz * ath
+            ath_mult = (ath / price) if price > 0 else 0
+            self.moon_ath.configure(text=t("holder.ath", p=f"{ath:g}", c=sym,
+                                          v=format_fiat(ath_value, sym), x=f"×{ath_mult:,.0f}"))
         else:
             self.moon_ath.configure(text="")

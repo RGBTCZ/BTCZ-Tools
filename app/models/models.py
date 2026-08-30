@@ -55,6 +55,7 @@ class MarketData:
     price_usd: float = 0.0
     change_24h: float = 0.0
     market_cap_eur: float = 0.0
+    market_cap_usd: float = 0.0
     volume_24h_eur: float = 0.0
     source: str = "coingecko"
 

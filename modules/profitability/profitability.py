@@ -6,6 +6,7 @@ from app.core import settings
 from app.core.i18n import t
 from app.ui.theme import COLORS, font
 from app.ui.widgets import SectionTitle, StatCard
+from app.core.currency import currency
 from app.utils.format import SOL_UNITS, format_btcz, format_fiat, format_hashrate
 from app.utils.mining_calc import breakeven_price, price_scenarios, profitability, roi_days
 from config.gpu_presets import GPU_PRESETS
@@ -31,6 +32,7 @@ class ProfitabilityModule(BaseModule):
         self.saved = {**DEFAULTS, **(settings.get("profitability", {}) or {})}
         self.net = None
         self.market = None
+        self._has_result = False
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(3, weight=1)
@@ -49,7 +51,7 @@ class ProfitabilityModule(BaseModule):
             "c.block_reward": StatCard(strip, t("c.block_reward")),
             "prof.block_time": StatCard(strip, t("prof.block_time")),
             "c.net_hashrate": StatCard(strip, t("c.net_hashrate")),
-            "c.price_eur": StatCard(strip, t("c.price_eur")),
+            "c.price_eur": StatCard(strip, t("prof.sc_price", c=currency.symbol())),
         }
         for i, key in enumerate(["c.difficulty", "c.block_reward", "prof.block_time", "c.net_hashrate", "c.price_eur"]):
             self.nd[key].grid(row=0, column=i, padx=5, pady=6, sticky="ew")
@@ -113,7 +115,7 @@ class ProfitabilityModule(BaseModule):
         self.in_power.insert(0, self.saved["power"])
         self.in_power.grid(row=6, column=0, padx=16, pady=(0, 6), sticky="ew")
 
-        self.lbl_elec = ctk.CTkLabel(card, text=t("prof.elec"), anchor="w")
+        self.lbl_elec = ctk.CTkLabel(card, text=t("prof.elec", c=currency.symbol()), anchor="w")
         self.lbl_elec.grid(row=7, column=0, padx=16, pady=(6, 0), sticky="w")
         self.in_elec = ctk.CTkEntry(card, height=34)
         self.in_elec.insert(0, self.saved["elec"])
@@ -125,7 +127,7 @@ class ProfitabilityModule(BaseModule):
         self.in_fee.insert(0, self.saved["pool_fee"])
         self.in_fee.grid(row=10, column=0, padx=16, pady=(0, 6), sticky="ew")
 
-        self.lbl_hw = ctk.CTkLabel(card, text=t("prof.hardware"), anchor="w")
+        self.lbl_hw = ctk.CTkLabel(card, text=t("prof.hardware", c=currency.symbol()), anchor="w")
         self.lbl_hw.grid(row=11, column=0, padx=16, pady=(6, 0), sticky="w")
         self.in_hw = ctk.CTkEntry(card, height=34)
         self.in_hw.insert(0, self.saved["hardware"])
@@ -222,16 +224,19 @@ class ProfitabilityModule(BaseModule):
             self.gpu_menu.set(t("prof.gpu_custom"))
         self.lbl_hashrate.configure(text=t("prof.hashrate"))
         self.lbl_power.configure(text=t("prof.power"))
-        self.lbl_elec.configure(text=t("prof.elec"))
+        self.lbl_elec.configure(text=t("prof.elec", c=currency.symbol()))
         self.lbl_fee.configure(text=t("prof.pool_fee"))
-        self.lbl_hw.configure(text=t("prof.hardware"))
+        self.lbl_hw.configure(text=t("prof.hardware", c=currency.symbol()))
         self.calc_btn.configure(text=t("prof.calculate"))
         self.head_unit.configure(text=t("prof.per_day"))
         self.sec_sc.configure(text=t("prof.scenarios"))
         for key, card in self.nd.items():
-            card.set_title(t(key))
+            card.set_title(t("prof.sc_price", c=currency.symbol()) if key == "c.price_eur" else t(key))
         for name, (lbl, key, val) in self.res_labels.items():
             lbl.configure(text=t(key))
+        self.refresh()
+        if self._has_result:
+            self.calculate()
 
     def refresh(self):
         threading.Thread(target=self._load_network, daemon=True).start()
@@ -247,7 +252,8 @@ class ProfitabilityModule(BaseModule):
             pass
         try:
             self.market = self.datalayer.get_market()
-            self.nd["c.price_eur"].update_value(format_btcz(self.market.price_eur, 8))
+            self.nd["c.price_eur"].update_value(
+                format_btcz(currency.value(self.market.price_eur, self.market.price_usd), 8))
         except Exception:
             pass
 
@@ -297,7 +303,8 @@ class ProfitabilityModule(BaseModule):
 
         hashrate_solps = hashrate * SOL_UNITS.get(unit, 1)
         network_solps = self.net.network_hashps()
-        price = self.market.price_eur
+        price = currency.value(self.market.price_eur, self.market.price_usd)
+        sym = currency.symbol()
 
         res = profitability(
             hashrate_solps, power, elec, fee, price,
@@ -305,22 +312,22 @@ class ProfitabilityModule(BaseModule):
         )
         self.head_coins.configure(text=f"≈ {format_btcz(res['coins'], 4)}")
         self.res_labels["revenue"][2].configure(
-            text=f"+{format_fiat(res['revenue'], 'EUR', 4)}{t('prof.day_unit')}", text_color=COLORS["text"]
+            text=f"+{format_fiat(res['revenue'], sym, 4)}{t('prof.day_unit')}", text_color=COLORS["text"]
         )
         self.res_labels["electricity"][2].configure(
-            text=f"-{format_fiat(res['electricity'], 'EUR', 4)}{t('prof.day_unit')}", text_color=COLORS["err"]
+            text=f"-{format_fiat(res['electricity'], sym, 4)}{t('prof.day_unit')}", text_color=COLORS["err"]
         )
         self.res_labels["fee"][2].configure(
-            text=f"-{format_fiat(res['fee'], 'EUR', 4)}{t('prof.day_unit')}", text_color=COLORS["warn"]
+            text=f"-{format_fiat(res['fee'], sym, 4)}{t('prof.day_unit')}", text_color=COLORS["warn"]
         )
         profit_color = COLORS["ok"] if res["profit"] >= 0 else COLORS["err"]
         sign = "+" if res["profit"] >= 0 else ""
         self.res_labels["profit"][2].configure(
-            text=f"{sign}{format_fiat(res['profit'], 'EUR', 4)}{t('prof.day_unit')}", text_color=profit_color
+            text=f"{sign}{format_fiat(res['profit'], sym, 4)}{t('prof.day_unit')}", text_color=profit_color
         )
 
         be = breakeven_price(res["coins"], power, elec, fee)
-        self.lbl_be.configure(text=f"{t('prof.breakeven')}: {format_fiat(be, 'EUR', 10)}")
+        self.lbl_be.configure(text=f"{t('prof.breakeven')}: {format_fiat(be, sym, 10)}")
 
         days = roi_days(hardware, res["profit"])
         if hardware > 0:
@@ -330,23 +337,25 @@ class ProfitabilityModule(BaseModule):
             self.lbl_roi.configure(text="")
 
         self._render_scenarios(price, res["coins"], power, elec, fee)
+        self._has_result = True
         self.status.configure(text=t("st.sources", s=self.net.source))
 
     def _render_scenarios(self, price, coins, power, elec, fee):
         for widget in self.sc_frame.winfo_children():
             widget.destroy()
         scenarios = price_scenarios(price, coins, power, elec, fee, MULTIPLIERS)
+        sym = currency.symbol()
         for r, sc in enumerate(scenarios):
             tag = f"  ({t('prof.current')})" if sc["mult"] == 1 else ""
             price_lbl = ctk.CTkLabel(
-                self.sc_frame, text=f"{format_fiat(sc['price'], 'EUR', 10)}{tag}",
+                self.sc_frame, text=f"{format_fiat(sc['price'], sym, 10)}{tag}",
                 font=font(12), text_color=COLORS["muted"], anchor="w",
             )
             price_lbl.grid(row=r, column=0, sticky="w", pady=2)
             color = COLORS["ok"] if sc["profit"] >= 0 else COLORS["err"]
             sign = "+" if sc["profit"] >= 0 else ""
             profit_lbl = ctk.CTkLabel(
-                self.sc_frame, text=f"{sign}{format_fiat(sc['profit'], 'EUR', 4)}{t('prof.day_unit')}",
+                self.sc_frame, text=f"{sign}{format_fiat(sc['profit'], sym, 4)}{t('prof.day_unit')}",
                 font=font(12, "bold"), text_color=color, anchor="e",
             )
             profit_lbl.grid(row=r, column=1, sticky="e", pady=2)

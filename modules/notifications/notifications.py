@@ -4,6 +4,7 @@ from datetime import datetime
 import customtkinter as ctk
 
 from app.core import settings
+from app.core.currency import currency
 from app.core.i18n import t
 from app.ui.theme import COLORS, font
 from app.ui.widgets import SectionTitle
@@ -72,8 +73,8 @@ class NotificationsModule(BaseModule):
         price.grid_columnconfigure(0, weight=1)
         self.sw_price = ctk.CTkSwitch(price, text=t("notif.price_label"), command=self._save_toggles)
         self.sw_price.grid(row=0, column=0, columnspan=3, padx=16, pady=(14, 2), sticky="w")
-        self.lbl_price_help = ctk.CTkLabel(price, text=t("notif.price_help"), text_color=COLORS["muted"],
-                                           font=font(11), anchor="w")
+        self.lbl_price_help = ctk.CTkLabel(price, text=t("notif.price_help", c=currency.symbol()),
+                                           text_color=COLORS["muted"], font=font(11), anchor="w")
         self.lbl_price_help.grid(row=1, column=0, columnspan=3, padx=16, pady=(0, 6), sticky="w")
         self.e_price = ctk.CTkEntry(price, width=180, placeholder_text=t("notif.price_ph"), height=34)
         self.e_price.grid(row=2, column=0, padx=16, pady=(0, 6), sticky="w")
@@ -83,8 +84,8 @@ class NotificationsModule(BaseModule):
                                          fg_color=COLORS["sidebar"], button_color=COLORS["accent_dark"],
                                          button_hover_color=COLORS["accent"])
         self.opt_dir.grid(row=2, column=2, padx=(0, 16), pady=(0, 6))
-        self.lbl_price_now = ctk.CTkLabel(price, text=t("notif.price_now", p="…"), text_color=COLORS["info"],
-                                          font=font(11), anchor="w")
+        self.lbl_price_now = ctk.CTkLabel(price, text=t("notif.price_now", p="…", c=currency.symbol()),
+                                          text_color=COLORS["info"], font=font(11), anchor="w")
         self.lbl_price_now.grid(row=3, column=0, columnspan=3, padx=16, pady=(0, 14), sticky="w")
 
         payout = self._card(3)
@@ -139,7 +140,7 @@ class NotificationsModule(BaseModule):
         self.title_lbl.configure(text=t("notif.title"))
         self.test_btn.configure(text=t("notif.test"))
         self.sw_price.configure(text=t("notif.price_label"))
-        self.lbl_price_help.configure(text=t("notif.price_help"))
+        self.lbl_price_help.configure(text=t("notif.price_help", c=currency.symbol()))
         self.e_price.configure(placeholder_text=t("notif.price_ph"))
         self.lbl_dir.configure(text=t("notif.price_dir"))
         self.opt_dir.configure(values=[t(k) for k in DIR_KEYS])
@@ -169,10 +170,10 @@ class NotificationsModule(BaseModule):
     def _fetch_price_hint(self):
         try:
             market = self.datalayer.get_market()
-            price = self._fmt_price(market.price_eur)
-            self.lbl_price_now.configure(text=t("notif.price_now", p=price or "—"))
+            price = self._fmt_price(currency.value(market.price_eur, market.price_usd))
+            self.lbl_price_now.configure(text=t("notif.price_now", p=price or "—", c=currency.symbol()))
         except Exception:
-            self.lbl_price_now.configure(text=t("notif.price_now", p="—"))
+            self.lbl_price_now.configure(text=t("notif.price_now", p="—", c=currency.symbol()))
 
     def _dir_from_value(self, value):
         for key, val in DIR_VALUES.items():

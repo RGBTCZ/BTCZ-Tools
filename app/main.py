@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import customtkinter as ctk
 
 from app.core import settings
+from app.core.currency import currency
 from app.core.datalayer import BTCZDataLayer
 from app.core.i18n import LANGUAGE_LABELS, LANGUAGES, i18n, t
 from app.core.monitor import Monitor
@@ -104,9 +105,20 @@ class BTCZToolsApp(ctk.CTk):
             self.buttons[cls.key] = (btn, cls)
 
         spacer_row = len(module_classes) + 1
-        lang_row = spacer_row + 1
-        version_row = spacer_row + 2
+        currency_row = spacer_row + 1
+        lang_row = spacer_row + 2
+        version_row = spacer_row + 3
         self.sidebar.grid_rowconfigure(spacer_row, weight=1)
+
+        self.currency_btn = ctk.CTkSegmentedButton(
+            self.sidebar,
+            values=["€", "$"],
+            command=self.on_currency_change,
+            selected_color=COLORS["accent_dark"],
+            selected_hover_color=COLORS["accent"],
+        )
+        self.currency_btn.set("€" if currency.code == "EUR" else "$")
+        self.currency_btn.grid(row=currency_row, column=0, padx=12, pady=(4, 4), sticky="ew")
 
         self.lang_menu = ctk.CTkOptionMenu(
             self.sidebar,
@@ -124,6 +136,7 @@ class BTCZToolsApp(ctk.CTk):
         ).grid(row=version_row, column=0, padx=20, pady=(0, 16), sticky="w")
 
         i18n.add_listener(self.retranslate_all)
+        currency.add_listener(self.retranslate_all)
 
         self.active = None
         self.show(DashboardModule.key)
@@ -181,6 +194,9 @@ class BTCZToolsApp(ctk.CTk):
             UpdateDialog(self, info)
         except Exception:
             pass
+
+    def on_currency_change(self, value):
+        currency.set("USD" if value == "$" else "EUR")
 
     def on_language_change(self, label):
         for code, text in LANGUAGE_LABELS.items():

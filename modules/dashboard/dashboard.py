@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import customtkinter as ctk
 
 from app.core import settings
+from app.core.currency import currency
 from app.core.i18n import t
 from app.ui.theme import COLORS, font
 from app.ui.widgets import SectionTitle, StatCard
@@ -115,7 +116,8 @@ class DashboardModule(BaseModule):
             color = COLORS["ok"] if market.change_24h >= 0 else COLORS["err"]
             arrow = "+" if market.change_24h >= 0 else ""
             self.cards["c.change_24h"].update_value(f"{arrow}{market.change_24h:.2f} %", accent=color)
-            self.cards["c.market_cap"].update_value(f"{format_btcz(market.market_cap_eur, 0)} €")
+            self.cards["c.market_cap"].update_value(
+                f"{format_btcz(currency.value(market.market_cap_eur, market.market_cap_usd), 0)} {currency.symbol()}")
             self.status.configure(text=t("st.sources", s=net.source if net else "btcz.rocks"))
         except Exception as exc:
             self.status.configure(text=t("st.price_unavailable", e=exc))
@@ -161,10 +163,12 @@ class DashboardModule(BaseModule):
                 return d
 
         hashrate_solps = hashrate * SOL_UNITS.get(saved.get("unit", "KSol/s"), 1)
+        price = currency.value(market.price_eur, market.price_usd)
+        unit_txt = f"{currency.symbol()}/day"
         res = profitability(hashrate_solps, num("power"), num("elec"), num("pool_fee"),
-                            market.price_eur, net.network_hashps(), net.block_time, net.miner_reward)
-        self.cards["prof.revenue"].update_value(f"{res['revenue']:.4f}", subtitle="€/day")
-        self.cards["prof.electricity"].update_value(f"-{res['electricity']:.4f}", subtitle="€/day", accent=COLORS["err"])
+                            price, net.network_hashps(), net.block_time, net.miner_reward)
+        self.cards["prof.revenue"].update_value(f"{res['revenue']:.4f}", subtitle=unit_txt)
+        self.cards["prof.electricity"].update_value(f"-{res['electricity']:.4f}", subtitle=unit_txt, accent=COLORS["err"])
         color = COLORS["ok"] if res["profit"] >= 0 else COLORS["err"]
         sign = "+" if res["profit"] >= 0 else ""
-        self.cards["prof.profit"].update_value(f"{sign}{res['profit']:.4f}", subtitle="€/day", accent=color)
+        self.cards["prof.profit"].update_value(f"{sign}{res['profit']:.4f}", subtitle=unit_txt, accent=color)

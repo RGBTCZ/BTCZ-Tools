@@ -3,6 +3,21 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.2] - 2026-08-29
+
+A global EUR / USD currency switch.
+
+### Added
+- **€ / $ toggle** in the sidebar — flip the whole app between euros and dollars in one click. It carries through the Dashboard market and profitability summary, the Profitability calculator (price, revenue, costs, break-even, scenarios, and the input labels), the Holder cockpit (stack value, moonshot, ATH, milestones) and its shareable card, the Mining Assistant, and the price alert (target + current price). The choice is remembered.
+
+### Changed
+- Market value now uses CoinGecko's native EUR and USD figures (including USD market cap), so no home-made conversion is involved.
+
+### Notes
+- Currency-agnostic inputs you type yourself (electricity and hardware cost) keep their number when you switch — they're simply read in the selected currency, and their labels update to match.
+
+[1.4.2]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.4.2
+
 ## [1.4.1] - 2026-08-29
 
 UX polish for the notifications center.

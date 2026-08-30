@@ -3,6 +3,7 @@ import threading
 import customtkinter as ctk
 
 from app.core import settings
+from app.core.currency import currency
 from app.core.i18n import t
 from app.ui.theme import COLORS, font
 from app.ui.widgets import SectionTitle, StatCard
@@ -82,7 +83,8 @@ class AssistantModule(BaseModule):
         active_pools = [p for p in POOLS if p.get("active") and p.get("fee") is not None]
         best_pool = min(active_pools, key=lambda p: p["fee"]) if active_pools else None
 
-        insights, _ = analyze(hashrate_solps, power, elec, fee, hardware, market.price_eur,
+        insights, _ = analyze(hashrate_solps, power, elec, fee, hardware,
+                              currency.value(market.price_eur, market.price_usd),
                               net.network_hashps(), net.block_time, net.miner_reward, best_pool)
         self._render(saved, hashrate_solps, unit, power, elec, fee, hardware, insights)
         self.status.configure(text=t("st.sources", s=net.source))
@@ -103,9 +105,9 @@ class AssistantModule(BaseModule):
         cells = [
             (t("prof.hashrate"), format_hashrate(hashrate_solps)),
             (t("prof.power"), f"{power:.0f} W"),
-            (t("prof.elec"), f"{elec:.2f} €/kWh"),
+            (t("prof.elec", c=currency.symbol()), f"{elec:.2f} {currency.symbol()}/kWh"),
             (t("prof.pool_fee"), f"{fee:.2f} %"),
-            (t("prof.hardware"), f"{hardware:.0f} €" if hardware > 0 else t("pool.unknown")),
+            (t("prof.hardware", c=currency.symbol()), f"{hardware:.0f} {currency.symbol()}" if hardware > 0 else t("pool.unknown")),
         ]
         for i, (title, value) in enumerate(cells):
             setup.grid_columnconfigure(i, weight=1, uniform="setup")
@@ -119,7 +121,7 @@ class AssistantModule(BaseModule):
         for level, key, params in insights:
             icon = LEVEL_ICON.get(level, "•")
             color = LEVEL_COLOR.get(level, COLORS["text"])
-            ctk.CTkLabel(self.body, text=f"{icon}  {t(key, **params)}", font=font(13),
+            ctk.CTkLabel(self.body, text=f"{icon}  {t(key, c=currency.symbol(), **params)}", font=font(13),
                          text_color=color, anchor="w", justify="left", wraplength=780).grid(
                 row=row, column=0, sticky="w", pady=4)
             row += 1
