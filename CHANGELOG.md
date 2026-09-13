@@ -3,6 +3,15 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.6] - 2026-09-13
+
+Surfaces today's miner emission right in the Dashboard header.
+
+### Added
+- **Miner-emission chip in the Dashboard header** — a compact premium pill (⛏️ + amount + block count) shows how many BTCZ have gone to miners since local midnight, front and centre the moment the app opens. Same live figure as the Network Explorer card, in your selected currency's context.
+
+[1.4.6]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.4.6
+
 ## [1.4.5] - 2026-09-13
 
 Adds a live "miner emission today" card.

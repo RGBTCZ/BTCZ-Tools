@@ -29,9 +29,24 @@ class DashboardModule(BaseModule):
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.grid(row=0, column=0, padx=24, pady=(18, 4), sticky="ew")
         header.grid_columnconfigure(0, weight=1)
+        header.grid_columnconfigure(2, weight=1)
         ctk.CTkLabel(header, text="BTCZ Tools", font=font(26, "bold")).grid(row=0, column=0, sticky="w")
+
+        self.emis_chip = ctk.CTkFrame(header, corner_radius=20, fg_color=COLORS["card"],
+                                      border_width=1, border_color=COLORS["accent_dark"])
+        self.emis_chip.grid(row=0, column=1, padx=12)
+        ctk.CTkLabel(self.emis_chip, text="⛏️", font=font(18)).pack(side="left", padx=(14, 6), pady=7)
+        self.emis_chip_val = ctk.CTkLabel(self.emis_chip, text="-- BTCZ", font=font(16, "bold"),
+                                          text_color=COLORS["accent"])
+        self.emis_chip_val.pack(side="left")
+        self.emis_chip_lbl = ctk.CTkLabel(self.emis_chip, text=t("dash.emis_today"), font=font(11),
+                                          text_color=COLORS["muted"])
+        self.emis_chip_lbl.pack(side="left", padx=(8, 6))
+        self.emis_chip_sub = ctk.CTkLabel(self.emis_chip, text="", font=font(11), text_color=COLORS["muted"])
+        self.emis_chip_sub.pack(side="left", padx=(0, 14))
+
         self.refresh_btn = ctk.CTkButton(header, text=t("common.refresh"), width=110, command=self.refresh)
-        self.refresh_btn.grid(row=0, column=1, sticky="e")
+        self.refresh_btn.grid(row=0, column=2, sticky="e")
 
         self.body = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.body.grid(row=1, column=0, padx=20, pady=(6, 6), sticky="nsew")
@@ -82,6 +97,7 @@ class DashboardModule(BaseModule):
         if not self.built:
             return
         self.refresh_btn.configure(text=t("common.refresh"))
+        self.emis_chip_lbl.configure(text=t("dash.emis_today"))
         for key, lbl in self.sections.items():
             lbl.configure(text=t(key))
         for key, card in self.cards.items():
@@ -121,6 +137,13 @@ class DashboardModule(BaseModule):
             self.status.configure(text=t("st.sources", s=net.source if net else "btcz.rocks"))
         except Exception as exc:
             self.status.configure(text=t("st.price_unavailable", e=exc))
+
+        try:
+            em = self.datalayer.get_miner_emission_today()
+            self.emis_chip_val.configure(text=f"{format_btcz(em['emitted'], 0)} BTCZ")
+            self.emis_chip_sub.configure(text=t("dash.emis_blocks", n=f"{em['count']:,}"))
+        except Exception:
+            pass
 
         self._load_mining()
         self._load_profit(net, market)
