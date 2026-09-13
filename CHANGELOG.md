@@ -3,6 +3,15 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.7] - 2026-09-13
+
+Update checks now run while the app stays open.
+
+### Changed
+- **The update notice no longer waits for a restart** — the app re-checks GitHub for a newer release every 6 hours while it's running (not only at launch), so a release published while your app is open triggers the notice automatically. When a new version is found it also pushes a system-tray toast, so even a minimized (tray) app pings you. Still shown once per session, silent when up to date.
+
+[1.4.7]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.4.7
+
 ## [1.4.6] - 2026-09-13
 
 Surfaces today's miner emission right in the Dashboard header.

@@ -16,7 +16,7 @@ from app.core.updater import check_for_update
 from app.ui.theme import COLORS, apply_theme, font
 from app.ui.update_dialog import UpdateDialog
 from app.utils.assets import LOGO_PNG, apply_window_icon, ensure_logo, load_logo_image
-from config.config import APP_NAME, APP_VERSION
+from config.config import APP_NAME, APP_VERSION, UPDATE_CHECK_HOURS
 from modules.assistant.assistant import AssistantModule
 from modules.dashboard.dashboard import DashboardModule
 from modules.halving.halving import HalvingModule
@@ -146,7 +146,7 @@ class BTCZToolsApp(ctk.CTk):
         self.monitor.start()
 
         self._update_shown = False
-        threading.Thread(target=self._check_update, daemon=True).start()
+        self._schedule_update_check()
 
     def _on_notification(self, title, message):
         module = self.modules.get("notifications")
@@ -178,18 +178,30 @@ class BTCZToolsApp(ctk.CTk):
             pass
         self.destroy()
 
+    def _schedule_update_check(self):
+        threading.Thread(target=self._check_update, daemon=True).start()
+        interval_ms = max(1, int(UPDATE_CHECK_HOURS)) * 3600 * 1000
+        try:
+            self.after(interval_ms, self._schedule_update_check)
+        except Exception:
+            pass
+
     def _check_update(self):
         try:
             info = check_for_update()
         except Exception:
             info = None
-        if info:
+        if info and not self._update_shown:
             self.after(0, lambda: self._show_update(info))
 
     def _show_update(self, info):
         if self._update_shown:
             return
         self._update_shown = True
+        try:
+            self.notifier.notify(t("update.title"), t("update.subtitle", v=info["latest"], c=info["current"]))
+        except Exception:
+            pass
         try:
             UpdateDialog(self, info)
         except Exception:
