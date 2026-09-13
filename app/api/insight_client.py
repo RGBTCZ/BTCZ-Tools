@@ -13,6 +13,12 @@ class InsightClient:
         data = http_get_json(f"{self.base_url}/blocks", params={"limit": limit})
         return data.get("blocks", [])
 
+    def get_blocks_by_date(self, date_str, limit=5000):
+        data = http_get_json(f"{self.base_url}/blocks", params={"blockDate": date_str, "limit": limit})
+        if not isinstance(data, dict):
+            return []
+        return data.get("blocks", []) or []
+
     def get_block(self, block_hash):
         return http_get_json(f"{self.base_url}/block/{block_hash}")
 

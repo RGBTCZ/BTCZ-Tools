@@ -3,6 +3,29 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.5] - 2026-09-13
+
+Adds a live "miner emission today" card.
+
+### Added
+- **⛏️ Miner emission today** — a premium card in the Network Explorer showing how many BTCZ have actually been paid to miners since local midnight. It counts the real blocks found today (via the explorer's per-date block list, filtered by each block's timestamp against your local 00:00) and sums the true miner reward per block, i.e. the post-Canopy **80%** share (2,500 of the 3,125 BTCZ block reward; the other 20% goes to the community fund). The card also shows the ≈ fiat value in your selected currency and the per-block miner reward.
+
+[1.4.5]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.4.5
+
+## [1.4.4] - 2026-09-13
+
+Sharpens the live pool-stats panel: shared-pool immature, remembered rigs, and auto-refresh.
+
+### Added
+- **Remembered rig addresses** — the pool-stats address field is now a dropdown that keeps the addresses you've fetched (with the last pool you used), instead of a placeholder that forgot them. A **Remove** button drops one.
+- **Auto-refresh every 60s** — a switch (on by default) re-fetches your live pool stats every minute so IMMATURE, BALANCE and PAID stay current while you watch. The worker-stats cache was shortened to ~45s so each refresh brings fresh data.
+- **Immature on shared pools** — on PPLNS/collective Miningcore pools, IMMATURE is now shown as your proportional share of the pending blocks (your hashrate ÷ pool hashrate × pending rewards), marked **(est.)**. Solo pools stay exact (sum of the pending blocks your address found).
+
+### Notes
+- On Miningcore, a confirmed-but-unpaid block sits in BALANCE (`pendingBalance`) until the payout threshold is met — that path was already correct and is unchanged.
+
+[1.4.4]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.4.4
+
 ## [1.4.3] - 2026-09-13
 
 Fixes immature balance on Miningcore pools.

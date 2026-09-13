@@ -95,6 +95,7 @@ class PoolWorker:
     total_shares: float = 0.0
     network_sols: float = 0.0
     immature: float = 0.0
+    immature_estimated: bool = False
     balance: float = 0.0
     paid: float = 0.0
     workers: int = 0

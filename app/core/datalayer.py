@@ -364,13 +364,15 @@ class BTCZDataLayer:
             if target.get("api_base"):
                 worker = self.nomp.get_worker(target["api_base"], address)
             elif target.get("api_miningcore"):
-                worker = self.miningcore.get_miner(target["api_miningcore"], address)
+                scheme = str(target.get("scheme", "")).upper()
+                solo = "SOLO" in scheme and "PPLNS" not in scheme
+                worker = self.miningcore.get_miner(target["api_miningcore"], address, solo=solo)
             else:
                 return None
         except (NetworkError, DataError) as exc:
             log.warning("worker stats %s/%s failed: %s", pool_name, address, exc)
             return PoolWorker(miner=address, ok=False)
-        self.cache.set(key, worker, CACHE_TTL["pools"])
+        self.cache.set(key, worker, CACHE_TTL["worker"])
         return worker
 
     def get_market(self):
@@ -378,3 +380,31 @@ class BTCZDataLayer:
 
     def get_coin_info(self):
         return self._cached("coin", CACHE_TTL["coin"], self.market.get_coin_info)
+
+    def get_miner_emission_today(self):
+        return self._cached("emission_today", CACHE_TTL["emission"], self._fetch_emission_today)
+
+    def _fetch_emission_today(self):
+        from datetime import datetime, timezone
+
+        now = datetime.now()
+        midnight_ts = datetime(now.year, now.month, now.day).timestamp()
+        now_ts = now.timestamp()
+        dates = {
+            datetime.fromtimestamp(midnight_ts, timezone.utc).strftime("%Y-%m-%d"),
+            datetime.fromtimestamp(now_ts, timezone.utc).strftime("%Y-%m-%d"),
+        }
+        seen = {}
+        for date_str in dates:
+            try:
+                blocks = self.insight.get_blocks_by_date(date_str, 5000)
+            except Exception:
+                continue
+            for block in blocks:
+                height = int(block.get("height", 0) or 0)
+                ts = int(block.get("time", 0) or 0)
+                if height and midnight_ts <= ts <= now_ts:
+                    seen[height] = ts
+        count = len(seen)
+        emitted = sum(miner_reward(h) for h in seen)
+        return {"count": count, "emitted": emitted}

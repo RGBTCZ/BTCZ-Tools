@@ -7,6 +7,7 @@ from tkinter import filedialog
 
 import customtkinter as ctk
 
+from app.core import settings
 from app.core.i18n import t
 from app.core.paths import DATA_DIR
 from app.ui.theme import COLORS, font
@@ -235,28 +236,46 @@ class MiningTrackerModule(BaseModule):
         self.status.grid(row=5, column=0, padx=26, pady=(0, 14), sticky="ew")
 
     def _build_pool_panel(self):
+        self._auto_job = None
+        self._last_pool = None
+        self._last_addr = None
+        self.rig_addresses = settings.get("rig_addresses", []) or []
+
         panel = ctk.CTkFrame(self, corner_radius=14, fg_color=COLORS["card"])
         panel.grid(row=3, column=0, padx=24, pady=(2, 6), sticky="ew")
         panel.grid_columnconfigure(0, weight=1)
 
         top = ctk.CTkFrame(panel, fg_color="transparent")
-        top.grid(row=0, column=0, padx=14, pady=(12, 6), sticky="ew")
+        top.grid(row=0, column=0, padx=14, pady=(12, 4), sticky="ew")
         top.grid_columnconfigure(1, weight=1)
         self.pool_stats_title = SectionTitle(top, text=t("track.pool_stats"))
         self.pool_stats_title.grid(row=0, column=0, padx=(0, 12), sticky="w")
-        self.pool_addr = ctk.CTkEntry(top, placeholder_text=t("track.pool_addr_ph"), height=34)
+        self.pool_addr = ctk.CTkComboBox(top, values=self.rig_addresses or [""], height=34)
+        self.pool_addr.set(self.rig_addresses[0] if self.rig_addresses else "")
         self.pool_addr.grid(row=0, column=1, sticky="ew")
         self.pool_menu = ctk.CTkOptionMenu(
             top, values=API_POOLS or ["--"], width=150,
             fg_color=COLORS["sidebar"], button_color=COLORS["accent_dark"], button_hover_color=COLORS["accent"],
         )
-        self.pool_menu.set(API_POOLS[0] if API_POOLS else "--")
+        last_pool = settings.get("rig_last_pool", "")
+        self.pool_menu.set(last_pool if last_pool in API_POOLS else (API_POOLS[0] if API_POOLS else "--"))
         self.pool_menu.grid(row=0, column=2, padx=(8, 0))
         self.pool_fetch_btn = ctk.CTkButton(top, text=t("track.fetch"), width=100, height=34, command=self.fetch_pool_stats)
         self.pool_fetch_btn.grid(row=0, column=3, padx=(8, 0))
 
+        sub = ctk.CTkFrame(panel, fg_color="transparent")
+        sub.grid(row=1, column=0, padx=14, pady=(0, 4), sticky="ew")
+        sub.grid_columnconfigure(1, weight=1)
+        self.auto_switch = ctk.CTkSwitch(sub, text=t("track.auto"), command=self._toggle_auto)
+        self.auto_switch.select()
+        self.auto_switch.grid(row=0, column=0, sticky="w")
+        self.pool_rig_remove = ctk.CTkButton(sub, text=t("b.remove"), width=90, height=28,
+                                             fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"],
+                                             command=self._remove_rig)
+        self.pool_rig_remove.grid(row=0, column=2, sticky="e")
+
         res = ctk.CTkFrame(panel, fg_color="transparent")
-        res.grid(row=1, column=0, padx=14, pady=(2, 12), sticky="ew")
+        res.grid(row=2, column=0, padx=14, pady=(2, 12), sticky="ew")
         self.worker_vals = {}
         cells = [("track.balance", COLORS["accent"]), ("track.immature", COLORS["warn"]),
                  ("track.paid", COLORS["text"]), ("track.hashrate", COLORS["info"]),
@@ -287,7 +306,8 @@ class MiningTrackerModule(BaseModule):
         for key, card in self.cards.items():
             card.set_title(t(key))
         self.pool_stats_title.configure(text=t("track.pool_stats"))
-        self.pool_addr.configure(placeholder_text=t("track.pool_addr_ph"))
+        self.auto_switch.configure(text=t("track.auto"))
+        self.pool_rig_remove.configure(text=t("b.remove"))
         self.pool_fetch_btn.configure(text=t("track.fetch"))
         for key, (title_lbl, val_lbl) in self.worker_vals.items():
             title_lbl.configure(text=t(key).upper())
@@ -304,10 +324,28 @@ class MiningTrackerModule(BaseModule):
         if pool not in API_POOLS:
             self.status.configure(text=t("track.worker_hint"))
             return
-        self.pool_addr.delete(0, "end")
-        self.pool_addr.insert(0, address)
+        self._remember_rig(address, pool)
+        self._last_pool = pool
+        self._last_addr = address
         self.pool_fetch_btn.configure(state="disabled")
         threading.Thread(target=self._fetch_worker, args=(pool, address), daemon=True).start()
+
+    def _remember_rig(self, address, pool):
+        rigs = [address] + [a for a in self.rig_addresses if a != address]
+        self.rig_addresses = rigs[:8]
+        settings.set("rig_addresses", self.rig_addresses)
+        settings.set("rig_last_pool", pool)
+        self.pool_addr.configure(values=self.rig_addresses or [""])
+        self.pool_addr.set(address)
+
+    def _remove_rig(self):
+        address = self.pool_addr.get().strip()
+        if not address:
+            return
+        self.rig_addresses = [a for a in self.rig_addresses if a != address]
+        settings.set("rig_addresses", self.rig_addresses)
+        self.pool_addr.configure(values=self.rig_addresses or [""])
+        self.pool_addr.set(self.rig_addresses[0] if self.rig_addresses else "")
 
     def _fetch_worker(self, pool, address):
         try:
@@ -317,17 +355,48 @@ class MiningTrackerModule(BaseModule):
                 for _, val in self.worker_vals.values():
                     val.configure(text="--")
             else:
+                imm = format_btcz(worker.immature, 4)
+                if worker.immature_estimated and worker.immature > 0:
+                    imm = f"{imm} {t('track.est')}"
                 self.worker_vals["track.balance"][1].configure(text=f"{format_btcz(worker.balance, 4)}")
-                self.worker_vals["track.immature"][1].configure(text=f"{format_btcz(worker.immature, 4)}")
+                self.worker_vals["track.immature"][1].configure(text=imm)
                 self.worker_vals["track.paid"][1].configure(text=f"{format_btcz(worker.paid, 2)}")
                 self.worker_vals["track.hashrate"][1].configure(
                     text=f"~ {format_hashrate(worker.hashps)}")
                 self.worker_vals["track.workers"][1].configure(text=str(worker.workers))
-                self.status.configure(text=f"{pool} | {address}")
+                stamp = datetime.now().strftime("%H:%M:%S")
+                self.status.configure(text=f"{pool} | {address}  ·  {stamp}")
         except Exception as exc:
             self.status.configure(text=t("track.worker_error", e=exc))
         finally:
             self.pool_fetch_btn.configure(state="normal")
+            self._schedule_auto()
+
+    def _schedule_auto(self):
+        if self._auto_job is not None:
+            try:
+                self.after_cancel(self._auto_job)
+            except Exception:
+                pass
+            self._auto_job = None
+        if self.auto_switch.get() and self._last_pool and self._last_addr:
+            self._auto_job = self.after(60000, self._auto_refetch)
+
+    def _auto_refetch(self):
+        self._auto_job = None
+        if not self.built or not self.auto_switch.get() or not self._last_pool or not self._last_addr:
+            return
+        threading.Thread(target=self._fetch_worker, args=(self._last_pool, self._last_addr), daemon=True).start()
+
+    def _toggle_auto(self):
+        if self.auto_switch.get():
+            self._schedule_auto()
+        elif self._auto_job is not None:
+            try:
+                self.after_cancel(self._auto_job)
+            except Exception:
+                pass
+            self._auto_job = None
 
     def log(self, text, tag="info"):
         self.console.log(text, tag)

@@ -20,7 +20,9 @@ CACHE_TTL = {
     "address": 60,
     "address_txs": 60,
     "pools": 300,
+    "worker": 45,
     "coin": 900,
+    "emission": 60,
 }
 
 HALVING_INTERVAL = 840000
@@ -59,7 +61,7 @@ MOONSHOT_TARGETS_EUR = [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
 MILESTONES_EUR = [1000, 10000, 100000, 1000000]
 
 APP_NAME = "BTCZ Tools"
-APP_VERSION = "1.4.3"
+APP_VERSION = "1.4.5"
 
 GITHUB_REPO = "RGBTCZ/BTCZ-Tools"
 GITHUB_API_LATEST = "https://api.github.com/repos/RGBTCZ/BTCZ-Tools/releases/latest"
