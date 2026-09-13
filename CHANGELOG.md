@@ -3,6 +3,15 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.3] - 2026-09-13
+
+Fixes immature balance on Miningcore pools.
+
+### Fixed
+- **Immature balance now shows on Miningcore pools** (HimPool, HimPool solo). Miningcore only credits a miner's `pendingBalance` once blocks mature, so freshly-found blocks awaiting confirmations were reported as 0. The live pool-stats panel now reads the pool's block list and sums the reward of every `pending` block found by your address, so the IMMATURE field reflects the blocks actually waiting on confirmations. If the block list can't be fetched, it falls back to 0 without affecting the rest of the stats.
+
+[1.4.3]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.4.3
+
 ## [1.4.2] - 2026-08-29
 
 A global EUR / USD currency switch.

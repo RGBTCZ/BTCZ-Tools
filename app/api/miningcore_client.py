@@ -4,7 +4,8 @@ from app.models.models import PoolLive, PoolWorker
 
 class MiningcoreClient:
     def get_miner(self, pool_url, address, timeout=8):
-        data = http_get_json(f"{pool_url.rstrip('/')}/miners/{address}", timeout=timeout)
+        base = pool_url.rstrip("/")
+        data = http_get_json(f"{base}/miners/{address}", timeout=timeout)
         if not isinstance(data, dict):
             return PoolWorker(miner=address, ok=False)
         perf = data.get("performance") or {}
@@ -15,10 +16,32 @@ class MiningcoreClient:
             hashps=hashps,
             total_shares=float(data.get("pendingShares", 0) or 0),
             balance=float(data.get("pendingBalance", 0) or 0),
+            immature=self._pending_immature(base, address, timeout),
             paid=float(data.get("totalPaid", 0) or 0),
             workers=len(worker_map),
             ok=True,
         )
+
+    def _pending_immature(self, base, address, timeout=8):
+        try:
+            data = http_get_json(f"{base}/blocks", params={"page": 0, "pageSize": 100}, timeout=timeout)
+        except Exception:
+            return 0.0
+        blocks = data.get("result") or data.get("blocks") if isinstance(data, dict) else data
+        if not isinstance(blocks, list):
+            return 0.0
+        target = address.strip().lower()
+        total = 0.0
+        for block in blocks:
+            if not isinstance(block, dict):
+                continue
+            if str(block.get("status", "")).lower() != "pending":
+                continue
+            miner = str(block.get("miner", "")).strip().lower()
+            if miner and miner != target:
+                continue
+            total += float(block.get("reward", 0) or 0)
+        return total
 
     def get_btcz(self, pool_url, name, timeout=8):
         data = http_get_json(pool_url, timeout=timeout)
