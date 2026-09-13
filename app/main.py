@@ -104,6 +104,13 @@ class BTCZToolsApp(ctk.CTk):
             btn.grid(row=index, column=0, padx=12, pady=4, sticky="ew")
             self.buttons[cls.key] = (btn, cls)
 
+        self._unread = 0
+        alerts_btn = self.buttons["notifications"][0]
+        self.alert_badge = ctk.CTkLabel(
+            alerts_btn, text="", width=22, height=22, corner_radius=11,
+            fg_color=COLORS["danger"], text_color="#ffffff", font=font(11, "bold"),
+        )
+
         spacer_row = len(module_classes) + 1
         currency_row = spacer_row + 1
         lang_row = spacer_row + 2
@@ -149,9 +156,22 @@ class BTCZToolsApp(ctk.CTk):
         self._schedule_update_check()
 
     def _on_notification(self, title, message):
+        self.after(0, self._notification_ui)
+
+    def _notification_ui(self):
         module = self.modules.get("notifications")
         if module is not None and getattr(module, "built", False):
-            self.after(0, module._render_history)
+            module._render_history()
+        if self.active != "notifications":
+            self._unread += 1
+            self._update_badge()
+
+    def _update_badge(self):
+        if self._unread > 0:
+            self.alert_badge.configure(text=str(self._unread) if self._unread < 100 else "99+")
+            self.alert_badge.place(relx=1.0, rely=0.5, x=-10, anchor="e")
+        else:
+            self.alert_badge.place_forget()
 
     def hide_to_tray(self):
         if not self.notifier.available():
@@ -236,6 +256,9 @@ class BTCZToolsApp(ctk.CTk):
         module.tkraise()
         module.on_show()
         self.active = key
+        if key == "notifications":
+            self._unread = 0
+            self._update_badge()
 
 
 def main():

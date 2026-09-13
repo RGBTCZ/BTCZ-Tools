@@ -9,6 +9,7 @@ Already on v1.2.0+? The app will offer this update for you the next time you lau
 
 ## 🔧 What's new
 
+- 🔴 **Unread alert badge** — a little numbered badge shows up next to **Alerts** in the sidebar whenever a notification fires while you're on another tab. If you weren't at your screen when it happened, you'll spot it the moment you come back. It clears as soon as you open the Alerts tab.
 - 🔄 **Update check keeps running** — until now the app only checked for a newer version at launch. It now re-checks GitHub every 6 hours while it's running, so a release published while your app is open triggers the update notice automatically, no restart needed.
 - 📥 **Tray ping too** — when a new version is found, a system-tray toast fires as well, so even a minimized (tray) app lets you know. Shown once per session, silent when you're already up to date.
 

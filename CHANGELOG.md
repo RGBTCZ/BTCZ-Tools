@@ -5,7 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [1.4.7] - 2026-09-13
 
-Update checks now run while the app stays open.
+Notifications reach you even when you're not watching: update checks while open, and an unread badge.
+
+### Added
+- **Unread alert badge** — a small numbered badge appears next to **Alerts** in the sidebar whenever a notification fires while you're on another tab, so you see at a glance that something happened while you were away. It clears the moment you open the Alerts tab.
 
 ### Changed
 - **The update notice no longer waits for a restart** — the app re-checks GitHub for a newer release every 6 hours while it's running (not only at launch), so a release published while your app is open triggers the notice automatically. When a new version is found it also pushes a system-tray toast, so even a minimized (tray) app pings you. Still shown once per session, silent when up to date.
