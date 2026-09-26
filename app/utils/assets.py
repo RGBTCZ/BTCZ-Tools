@@ -67,13 +67,31 @@ def load_logo_image(size=(42, 42)):
         return None
 
 
-def apply_window_icon(window):
+def set_app_user_model_id(app_id="BTCZTools.Desktop.1"):
     try:
-        if LOGO_ICO.exists():
-            window.iconbitmap(str(LOGO_ICO))
-        elif LOGO_PNG.exists():
-            icon = ImageTk.PhotoImage(Image.open(LOGO_PNG))
-            window._icon_ref = icon
-            window.iconphoto(True, icon)
-    except Exception as exc:
-        log.warning("Window icon failed: %s", exc)
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+    except Exception:
+        pass
+
+
+def apply_window_icon(window):
+    if LOGO_ICO.exists():
+        try:
+            window.iconbitmap(default=str(LOGO_ICO))
+        except Exception:
+            try:
+                window.iconbitmap(str(LOGO_ICO))
+            except Exception as exc:
+                log.info("iconbitmap unavailable (%s), using iconphoto", exc)
+
+    if LOGO_PNG.exists():
+        try:
+            sizes = [16, 24, 32, 48, 64, 128, 256]
+            base = Image.open(LOGO_PNG).convert("RGBA")
+            photos = [ImageTk.PhotoImage(base.resize((s, s), Image.Resampling.LANCZOS)) for s in sizes]
+            window._icon_refs = photos
+            window.iconphoto(True, *photos)
+        except Exception as exc:
+            log.warning("iconphoto failed: %s", exc)

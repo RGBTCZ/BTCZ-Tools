@@ -15,7 +15,13 @@ from app.core.notifier import Notifier
 from app.core.updater import check_for_update
 from app.ui.theme import COLORS, apply_theme, font
 from app.ui.update_dialog import UpdateDialog
-from app.utils.assets import LOGO_PNG, apply_window_icon, ensure_logo, load_logo_image
+from app.utils.assets import (
+    LOGO_PNG,
+    apply_window_icon,
+    ensure_logo,
+    load_logo_image,
+    set_app_user_model_id,
+)
 from config.config import APP_NAME, APP_VERSION, UPDATE_CHECK_HOURS
 from modules.assistant.assistant import AssistantModule
 from modules.dashboard.dashboard import DashboardModule
@@ -53,10 +59,10 @@ class BTCZToolsApp(ctk.CTk):
 
         brand = ctk.CTkFrame(self.sidebar, fg_color="transparent")
         brand.grid(row=0, column=0, padx=18, pady=(24, 20), sticky="w")
-        logo = load_logo_image((34, 34))
+        logo = load_logo_image((52, 52))
         if logo is not None:
             self.logo_ref = logo
-            ctk.CTkLabel(brand, image=logo, text="").pack(side="left", padx=(0, 10))
+            ctk.CTkLabel(brand, image=logo, text="").pack(side="left", padx=(0, 12))
         ctk.CTkLabel(
             brand, text="BTCZ Tools", font=font(20, "bold"), text_color=COLORS["accent"]
         ).pack(side="left")
@@ -262,6 +268,7 @@ class BTCZToolsApp(ctk.CTk):
 
 
 def main():
+    set_app_user_model_id()
     app = BTCZToolsApp()
     app.mainloop()
 
