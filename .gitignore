@@ -30,3 +30,5 @@ desktop.ini
 build/
 dist/
 *.egg-info/
+
+RELEASE_NOTES_v*.md
