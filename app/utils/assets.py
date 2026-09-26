@@ -1,18 +1,28 @@
+import shutil
+
 import requests
 from PIL import Image, ImageTk
 
 from app.core.logger import get_logger
-from app.core.paths import DATA_DIR
+from app.core.paths import ASSETS_DIR, DATA_DIR
 from config.config import LOGO_URLS
 
 log = get_logger("assets")
+
+BUNDLED_PNG = ASSETS_DIR / "btcz_logo.png"
+BUNDLED_ICO = ASSETS_DIR / "btcz_logo.ico"
 
 LOGO_PNG = DATA_DIR / "btcz_logo.png"
 LOGO_ICO = DATA_DIR / "btcz_logo.ico"
 
 
 def ensure_logo():
-    if not LOGO_PNG.exists():
+    if BUNDLED_PNG.exists():
+        try:
+            shutil.copyfile(BUNDLED_PNG, LOGO_PNG)
+        except Exception as exc:
+            log.warning("Bundled logo copy failed: %s", exc)
+    elif not LOGO_PNG.exists():
         for url in LOGO_URLS:
             try:
                 resp = requests.get(url, timeout=15)
@@ -24,6 +34,13 @@ def ensure_logo():
             except Exception as exc:
                 log.warning("Logo download failed (%s): %s", url, exc)
                 continue
+
+    if BUNDLED_ICO.exists():
+        try:
+            shutil.copyfile(BUNDLED_ICO, LOGO_ICO)
+            return
+        except Exception as exc:
+            log.warning("Bundled ICO copy failed: %s", exc)
 
     if LOGO_PNG.exists():
         try:

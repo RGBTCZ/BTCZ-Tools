@@ -14,6 +14,7 @@ Multi-rig setup, and an Assistant that reads your real live hashrate.
 - **The Assistant now uses your live hashrate** — instead of a typed number, it reads the real hashrate from *My Live Pool Stats* (your remembered pool + address) and analyses that; when you're offline it falls back to the sum of your configured rigs. The setup card shows whether the hashrate is **live** or **configured**, and the power is the sum of all your rigs.
 
 ### Fixed
+- **Real app icon, high quality** — the window, tray and `.exe` icon are now the actual BTCZ Tools logo, bundled with the app (`assets/btcz_logo.ico`, multi-size 16→256) instead of being downloaded from a generic web logo. The remote download stays only as a last-resort fallback. The Windows executable now carries the logo in Explorer too.
 - **Corrected and extended GPU presets** — the Equihash(144,5) / Zhash hashrates were understated. They're now taken from **2cryptocalc.com**, which matches real rigs far better (GTX 1070 Ti ≈ 65 Sol/s, RTX 3070 ≈ 110, RTX 3080 ≈ 152, RTX 4090 ≈ 210, RX 6800 ≈ 110). The list also grew from 26 to **52 cards** (GTX 10/16, RTX 20/30/40, AMD RX 500/5000/6000/7000 + Vega/VII), each with typical mining power draw. Values stay indicative — every card and OC differs — so use Custom for your exact numbers.
 
 [1.5.0]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.5.0

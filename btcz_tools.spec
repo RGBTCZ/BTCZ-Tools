@@ -5,9 +5,13 @@ from PyInstaller.utils.hooks import collect_all
 datas, binaries, hiddenimports = collect_all("customtkinter")
 hiddenimports += ["pystray._win32", "PIL.ImageDraw", "PIL.ImageFont"]
 
-icon_path = os.path.join(SPECPATH, "btcz_logo.ico")
+assets_dir = os.path.join(SPECPATH, "assets")
+if os.path.isdir(assets_dir):
+    datas += [(assets_dir, "assets")]
+
+icon_path = os.path.join(assets_dir, "btcz_logo.ico")
 icon_file = icon_path if os.path.exists(icon_path) else None
-print("BTCZ Tools build icon:", icon_file or "DEFAULT (btcz_logo.ico introuvable a cote du .spec)")
+print("BTCZ Tools build icon:", icon_file or "DEFAULT (assets/btcz_logo.ico introuvable)")
 
 a = Analysis(
     ["run.py"],
