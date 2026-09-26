@@ -3,6 +3,21 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-09-26
+
+Multi-rig setup, and an Assistant that reads your real live hashrate.
+
+### Added
+- **Multi-rig setup** — the Profitability tab now manages several rigs, each with its own name, hashrate and power. Fill the fields and **➕ Add rig** to stack them; a list shows every rig with a remove button and a running **Total (Σ hashrate · Σ W)**. Profitability computes on the totals, so with more than one machine the electricity and profit are finally correct. Your old single setup is migrated into the list automatically.
+
+### Changed
+- **The Assistant now uses your live hashrate** — instead of a typed number, it reads the real hashrate from *My Live Pool Stats* (your remembered pool + address) and analyses that; when you're offline it falls back to the sum of your configured rigs. The setup card shows whether the hashrate is **live** or **configured**, and the power is the sum of all your rigs.
+
+### Fixed
+- **Corrected and extended GPU presets** — the Equihash(144,5) / Zhash hashrates were understated. They're now taken from **2cryptocalc.com**, which matches real rigs far better (GTX 1070 Ti ≈ 65 Sol/s, RTX 3070 ≈ 110, RTX 3080 ≈ 152, RTX 4090 ≈ 210, RX 6800 ≈ 110). The list also grew from 26 to **52 cards** (GTX 10/16, RTX 20/30/40, AMD RX 500/5000/6000/7000 + Vega/VII), each with typical mining power draw. Values stay indicative — every card and OC differs — so use Custom for your exact numbers.
+
+[1.5.0]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.5.0
+
 ## [1.4.7] - 2026-09-13
 
 Notifications reach you even when you're not watching: update checks while open, and an unread badge.

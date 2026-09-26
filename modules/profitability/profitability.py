@@ -3,10 +3,11 @@ import threading
 import customtkinter as ctk
 
 from app.core import settings
+from app.core.currency import currency
 from app.core.i18n import t
+from app.core.rigs import load_rigs, rig_solps, rigs_totals, save_rigs
 from app.ui.theme import COLORS, font
 from app.ui.widgets import SectionTitle, StatCard
-from app.core.currency import currency
 from app.utils.format import SOL_UNITS, format_btcz, format_fiat, format_hashrate
 from app.utils.mining_calc import breakeven_price, price_scenarios, profitability, roi_days
 from config.gpu_presets import GPU_PRESETS
@@ -30,6 +31,15 @@ class ProfitabilityModule(BaseModule):
 
     def build(self):
         self.saved = {**DEFAULTS, **(settings.get("profitability", {}) or {})}
+        self.rigs = load_rigs()
+        if not self.rigs and (self.saved.get("hashrate") or self.saved.get("power")):
+            self.rigs = [{
+                "name": t("prof.rig_default", n=1),
+                "hashrate": self.saved.get("hashrate", ""),
+                "unit": self.saved.get("unit", "KSol/s"),
+                "power": self.saved.get("power", ""),
+            }]
+            save_rigs(self.rigs)
         self.net = None
         self.market = None
         self._has_result = False
@@ -66,7 +76,7 @@ class ProfitabilityModule(BaseModule):
         self._build_results(content)
 
     def _build_inputs(self, parent):
-        card = ctk.CTkFrame(parent, corner_radius=16, fg_color=COLORS["card"])
+        card = ctk.CTkScrollableFrame(parent, corner_radius=16, fg_color=COLORS["card"])
         card.grid(row=0, column=0, padx=(0, 8), sticky="nsew")
         card.grid_columnconfigure(0, weight=1)
 
@@ -115,26 +125,47 @@ class ProfitabilityModule(BaseModule):
         self.in_power.insert(0, self.saved["power"])
         self.in_power.grid(row=6, column=0, padx=16, pady=(0, 6), sticky="ew")
 
+        addrow = ctk.CTkFrame(card, fg_color="transparent")
+        addrow.grid(row=7, column=0, padx=16, pady=(2, 6), sticky="ew")
+        addrow.grid_columnconfigure(0, weight=1)
+        self.in_rig_name = ctk.CTkEntry(addrow, height=34, placeholder_text=t("prof.rig_name"))
+        self.in_rig_name.grid(row=0, column=0, sticky="ew")
+        self.add_rig_btn = ctk.CTkButton(addrow, text=t("prof.add_rig"), width=130, height=34,
+                                         fg_color=COLORS["accent_dark"], hover_color=COLORS["accent"],
+                                         command=self.add_rig)
+        self.add_rig_btn.grid(row=0, column=1, padx=(8, 0))
+
+        self.rigs_box = ctk.CTkFrame(card, fg_color=COLORS["console_bg"], corner_radius=10)
+        self.rigs_box.grid(row=8, column=0, padx=16, pady=(0, 4), sticky="ew")
+        self.rigs_box.grid_columnconfigure(0, weight=1)
+        self.rigs_total = ctk.CTkLabel(card, text="", font=font(12, "bold"), text_color=COLORS["accent"], anchor="w")
+        self.rigs_total.grid(row=9, column=0, padx=16, pady=(0, 8), sticky="w")
+
+        sep = ctk.CTkFrame(card, height=1, fg_color=COLORS["scroll"])
+        sep.grid(row=10, column=0, padx=16, pady=(0, 8), sticky="ew")
+
         self.lbl_elec = ctk.CTkLabel(card, text=t("prof.elec", c=currency.symbol()), anchor="w")
-        self.lbl_elec.grid(row=7, column=0, padx=16, pady=(6, 0), sticky="w")
+        self.lbl_elec.grid(row=11, column=0, padx=16, pady=(6, 0), sticky="w")
         self.in_elec = ctk.CTkEntry(card, height=34)
         self.in_elec.insert(0, self.saved["elec"])
-        self.in_elec.grid(row=8, column=0, padx=16, pady=(0, 6), sticky="ew")
+        self.in_elec.grid(row=12, column=0, padx=16, pady=(0, 6), sticky="ew")
 
         self.lbl_fee = ctk.CTkLabel(card, text=t("prof.pool_fee"), anchor="w")
-        self.lbl_fee.grid(row=9, column=0, padx=16, pady=(6, 0), sticky="w")
+        self.lbl_fee.grid(row=13, column=0, padx=16, pady=(6, 0), sticky="w")
         self.in_fee = ctk.CTkEntry(card, height=34)
         self.in_fee.insert(0, self.saved["pool_fee"])
-        self.in_fee.grid(row=10, column=0, padx=16, pady=(0, 6), sticky="ew")
+        self.in_fee.grid(row=14, column=0, padx=16, pady=(0, 6), sticky="ew")
 
         self.lbl_hw = ctk.CTkLabel(card, text=t("prof.hardware", c=currency.symbol()), anchor="w")
-        self.lbl_hw.grid(row=11, column=0, padx=16, pady=(6, 0), sticky="w")
+        self.lbl_hw.grid(row=15, column=0, padx=16, pady=(6, 0), sticky="w")
         self.in_hw = ctk.CTkEntry(card, height=34)
         self.in_hw.insert(0, self.saved["hardware"])
-        self.in_hw.grid(row=12, column=0, padx=16, pady=(0, 10), sticky="ew")
+        self.in_hw.grid(row=16, column=0, padx=16, pady=(0, 10), sticky="ew")
 
         self.calc_btn = ctk.CTkButton(card, text=t("prof.calculate"), height=40, command=self.calculate)
-        self.calc_btn.grid(row=13, column=0, padx=16, pady=(4, 16), sticky="ew")
+        self.calc_btn.grid(row=17, column=0, padx=16, pady=(4, 16), sticky="ew")
+
+        self._render_rigs()
 
     def _gpu_values(self):
         return [t("prof.gpu_custom")] + [g["name"] for g in GPU_PRESETS]
@@ -155,6 +186,49 @@ class ProfitabilityModule(BaseModule):
                 self.in_power.delete(0, "end")
                 self.in_power.insert(0, str(gpu["watts"] * qty))
                 break
+
+    def add_rig(self):
+        hr = self.in_hashrate.get().strip()
+        power = self.in_power.get().strip()
+        if not hr and not power:
+            self.status.configure(text=t("prof.rig_need"))
+            return
+        name = self.in_rig_name.get().strip() or t("prof.rig_default", n=len(self.rigs) + 1)
+        self.rigs.append({"name": name, "hashrate": hr, "unit": self.unit_menu.get(), "power": power})
+        save_rigs(self.rigs)
+        self.in_rig_name.delete(0, "end")
+        self._render_rigs()
+        if self._has_result:
+            self.calculate()
+
+    def remove_rig(self, idx):
+        if 0 <= idx < len(self.rigs):
+            self.rigs.pop(idx)
+            save_rigs(self.rigs)
+            self._render_rigs()
+            if self._has_result:
+                self.calculate()
+
+    def _render_rigs(self):
+        for widget in self.rigs_box.winfo_children():
+            widget.destroy()
+        if not self.rigs:
+            ctk.CTkLabel(self.rigs_box, text=t("prof.no_rigs"), font=font(11), text_color=COLORS["muted"],
+                         anchor="w", wraplength=300, justify="left").grid(row=0, column=0, sticky="w", pady=6)
+            self.rigs_total.configure(text="")
+            return
+        for i, rig in enumerate(self.rigs):
+            row = ctk.CTkFrame(self.rigs_box, fg_color=COLORS["card"], corner_radius=8)
+            row.grid(row=i, column=0, sticky="ew", pady=2)
+            row.grid_columnconfigure(0, weight=1)
+            label = f"{rig.get('name', 'Rig')}  ·  {format_hashrate(rig_solps(rig))}  ·  {rig.get('power', '') or '0'} W"
+            ctk.CTkLabel(row, text=label, font=font(11), text_color=COLORS["text"], anchor="w").grid(
+                row=0, column=0, padx=(10, 6), pady=5, sticky="w")
+            ctk.CTkButton(row, text="✕", width=26, height=24, fg_color="transparent",
+                          hover_color=COLORS["danger"], text_color=COLORS["muted"],
+                          command=lambda idx=i: self.remove_rig(idx)).grid(row=0, column=1, padx=(0, 6), pady=3)
+        total_solps, total_power = rigs_totals(self.rigs)
+        self.rigs_total.configure(text=t("prof.total", h=format_hashrate(total_solps), w=f"{total_power:,.0f}"))
 
     def _build_results(self, parent):
         card = ctk.CTkFrame(parent, corner_radius=16, fg_color=COLORS["card"])
@@ -224,6 +298,9 @@ class ProfitabilityModule(BaseModule):
             self.gpu_menu.set(t("prof.gpu_custom"))
         self.lbl_hashrate.configure(text=t("prof.hashrate"))
         self.lbl_power.configure(text=t("prof.power"))
+        self.in_rig_name.configure(placeholder_text=t("prof.rig_name"))
+        self.add_rig_btn.configure(text=t("prof.add_rig"))
+        self._render_rigs()
         self.lbl_elec.configure(text=t("prof.elec", c=currency.symbol()))
         self.lbl_fee.configure(text=t("prof.pool_fee"))
         self.lbl_hw.configure(text=t("prof.hardware", c=currency.symbol()))
@@ -269,19 +346,21 @@ class ProfitabilityModule(BaseModule):
 
     def _calculate(self):
         try:
-            hashrate = self._parse(self.in_hashrate)
-            unit = self.unit_menu.get()
-            power = self._parse(self.in_power)
             elec = self._parse(self.in_elec)
             fee = self._parse(self.in_fee)
             hardware = self._parse(self.in_hw)
+            if self.rigs:
+                hashrate_solps, power = rigs_totals(self.rigs)
+            else:
+                hashrate_solps = self._parse(self.in_hashrate) * SOL_UNITS.get(self.unit_menu.get(), 1)
+                power = self._parse(self.in_power)
         except ValueError:
             self.status.configure(text=t("prof.invalid"))
             return
 
         settings.set("profitability", {
             "hashrate": self.in_hashrate.get().strip(),
-            "unit": unit,
+            "unit": self.unit_menu.get(),
             "power": self.in_power.get().strip(),
             "elec": self.in_elec.get().strip(),
             "pool_fee": self.in_fee.get().strip(),
@@ -301,7 +380,6 @@ class ProfitabilityModule(BaseModule):
                 self.status.configure(text=t("st.price_unavailable", e=exc))
                 return
 
-        hashrate_solps = hashrate * SOL_UNITS.get(unit, 1)
         network_solps = self.net.network_hashps()
         price = currency.value(self.market.price_eur, self.market.price_usd)
         sym = currency.symbol()
