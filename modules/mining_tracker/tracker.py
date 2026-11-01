@@ -237,9 +237,13 @@ class MiningTrackerModule(BaseModule):
 
     def _build_pool_panel(self):
         self._auto_job = None
-        self._last_pool = None
-        self._last_addr = None
         self.rig_addresses = settings.get("rig_addresses", []) or []
+        self.watch_rigs = self._load_watch_rigs()
+        self.rig_rows = {}
+        self.rig_headers = []
+        self.rigs_empty = None
+        self.total_title = None
+        self.total_vals = {}
 
         panel = ctk.CTkFrame(self, corner_radius=14, fg_color=COLORS["card"])
         panel.grid(row=3, column=0, padx=24, pady=(2, 6), sticky="ew")
@@ -260,8 +264,8 @@ class MiningTrackerModule(BaseModule):
         last_pool = settings.get("rig_last_pool", "")
         self.pool_menu.set(last_pool if last_pool in API_POOLS else (API_POOLS[0] if API_POOLS else "--"))
         self.pool_menu.grid(row=0, column=2, padx=(8, 0))
-        self.pool_fetch_btn = ctk.CTkButton(top, text=t("track.fetch"), width=100, height=34, command=self.fetch_pool_stats)
-        self.pool_fetch_btn.grid(row=0, column=3, padx=(8, 0))
+        self.pool_add_btn = ctk.CTkButton(top, text=t("track.add_rig"), width=130, height=34, command=self.add_rig)
+        self.pool_add_btn.grid(row=0, column=3, padx=(8, 0))
 
         sub = ctk.CTkFrame(panel, fg_color="transparent")
         sub.grid(row=1, column=0, padx=14, pady=(0, 4), sticky="ew")
@@ -269,26 +273,98 @@ class MiningTrackerModule(BaseModule):
         self.auto_switch = ctk.CTkSwitch(sub, text=t("track.auto"), command=self._toggle_auto)
         self.auto_switch.select()
         self.auto_switch.grid(row=0, column=0, sticky="w")
-        self.pool_rig_remove = ctk.CTkButton(sub, text=t("b.remove"), width=90, height=28,
-                                             fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"],
-                                             command=self._remove_rig)
-        self.pool_rig_remove.grid(row=0, column=2, sticky="e")
+        self.pool_fetch_btn = ctk.CTkButton(sub, text=t("track.refresh_all"), width=150, height=30, command=self.fetch_all)
+        self.pool_fetch_btn.grid(row=0, column=2, sticky="e")
 
-        res = ctk.CTkFrame(panel, fg_color="transparent")
-        res.grid(row=2, column=0, padx=14, pady=(2, 12), sticky="ew")
-        self.worker_vals = {}
-        cells = [("track.balance", COLORS["accent"]), ("track.immature", COLORS["warn"]),
-                 ("track.paid", COLORS["text"]), ("track.hashrate", COLORS["info"]),
-                 ("track.workers", COLORS["text"])]
-        for i, (key, color) in enumerate(cells):
-            res.grid_columnconfigure(i, weight=1, uniform="w")
-            cell = ctk.CTkFrame(res, fg_color="transparent")
-            cell.grid(row=0, column=i, padx=6, sticky="ew")
-            title_lbl = ctk.CTkLabel(cell, text=t(key).upper(), font=font(10, "bold"), text_color=COLORS["muted"], anchor="w")
-            title_lbl.pack(anchor="w")
-            val_lbl = ctk.CTkLabel(cell, text="--", font=font(15, "bold"), text_color=color, anchor="w")
-            val_lbl.pack(anchor="w")
-            self.worker_vals[key] = (title_lbl, val_lbl)
+        self.rigs_box = ctk.CTkFrame(panel, fg_color="transparent")
+        self.rigs_box.grid(row=2, column=0, padx=14, pady=(2, 12), sticky="ew")
+        self.rigs_box.grid_columnconfigure(0, weight=1)
+        self._render_rigs()
+        if self.watch_rigs:
+            self.after(800, self.fetch_all)
+
+    def _load_watch_rigs(self):
+        rigs = settings.get("watch_rigs", None)
+        if isinstance(rigs, list) and rigs:
+            out = []
+            for r in rigs:
+                if isinstance(r, dict) and r.get("address") and r.get("pool"):
+                    out.append({"address": r["address"], "pool": r["pool"]})
+            return out[:8]
+        saved = settings.get("rig_addresses", []) or []
+        last = settings.get("rig_last_pool", "")
+        if saved and last in API_POOLS:
+            return [{"address": saved[0], "pool": last}]
+        return []
+
+    def _save_watch_rigs(self):
+        settings.set("watch_rigs", self.watch_rigs)
+
+    def _short_addr(self, address):
+        return address if len(address) <= 16 else f"{address[:8]}…{address[-6:]}"
+
+    def _render_rigs(self):
+        for widget in self.rigs_box.winfo_children():
+            widget.destroy()
+        self.rig_rows = {}
+        self.rig_headers = []
+        self.rigs_empty = None
+        self.total_title = None
+        self.total_vals = {}
+        for col in range(7):
+            self.rigs_box.grid_columnconfigure(col, weight=1 if col == 0 else 0)
+        if not self.watch_rigs:
+            self.rigs_empty = ctk.CTkLabel(
+                self.rigs_box, text=t("track.no_rigs"), text_color=COLORS["muted"], anchor="w"
+            )
+            self.rigs_empty.grid(row=0, column=0, columnspan=7, sticky="w", pady=6)
+            return
+        headers = ["", "track.balance", "track.immature", "track.paid", "track.hashrate", "track.workers", ""]
+        for col, key in enumerate(headers):
+            lbl = ctk.CTkLabel(
+                self.rigs_box, text=(t(key).upper() if key else ""),
+                font=font(10, "bold"), text_color=COLORS["muted"], anchor="w",
+            )
+            lbl.grid(row=0, column=col, padx=6, pady=(0, 2), sticky="w")
+            self.rig_headers.append((key, lbl))
+        row_i = 1
+        for rig in self.watch_rigs:
+            self._build_rig_row(rig, row_i)
+            row_i += 1
+        self._build_total_row(row_i)
+
+    def _build_rig_row(self, rig, row_i):
+        key = (rig["address"], rig["pool"])
+        name = ctk.CTkLabel(
+            self.rigs_box,
+            text=f"{rig['pool']}  ·  {self._short_addr(rig['address'])}",
+            font=font(12, "bold"), text_color=COLORS["text"], anchor="w",
+        )
+        name.grid(row=row_i, column=0, padx=6, pady=3, sticky="w")
+        colors = [COLORS["accent"], COLORS["warn"], COLORS["text"], COLORS["info"], COLORS["text"]]
+        vals = {}
+        for i, color in enumerate(colors, start=1):
+            lbl = ctk.CTkLabel(self.rigs_box, text="--", font=font(13, "bold"), text_color=color, anchor="w")
+            lbl.grid(row=row_i, column=i, padx=6, pady=3, sticky="w")
+            vals[i] = lbl
+        remove = ctk.CTkButton(
+            self.rigs_box, text="✕", width=30, height=28,
+            fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"],
+            command=lambda k=key: self._remove_watch_rig(*k),
+        )
+        remove.grid(row=row_i, column=6, padx=6, pady=3)
+        self.rig_rows[key] = vals
+
+    def _build_total_row(self, row_i):
+        self.total_title = ctk.CTkLabel(
+            self.rigs_box, text=t("track.total"), font=font(12, "bold"), text_color=COLORS["accent"], anchor="w"
+        )
+        self.total_title.grid(row=row_i, column=0, padx=6, pady=(8, 2), sticky="w")
+        self.total_vals = {}
+        for i in range(1, 6):
+            lbl = ctk.CTkLabel(self.rigs_box, text="--", font=font(13, "bold"), text_color=COLORS["accent"], anchor="w")
+            lbl.grid(row=row_i, column=i, padx=6, pady=(8, 2), sticky="w")
+            self.total_vals[i] = lbl
 
     def retranslate(self):
         if not self.built:
@@ -307,70 +383,105 @@ class MiningTrackerModule(BaseModule):
             card.set_title(t(key))
         self.pool_stats_title.configure(text=t("track.pool_stats"))
         self.auto_switch.configure(text=t("track.auto"))
-        self.pool_rig_remove.configure(text=t("b.remove"))
-        self.pool_fetch_btn.configure(text=t("track.fetch"))
-        for key, (title_lbl, val_lbl) in self.worker_vals.items():
-            title_lbl.configure(text=t(key).upper())
+        self.pool_add_btn.configure(text=t("track.add_rig"))
+        self.pool_fetch_btn.configure(text=t("track.refresh_all"))
+        for key, lbl in self.rig_headers:
+            lbl.configure(text=t(key).upper() if key else "")
+        if self.rigs_empty is not None and self.rigs_empty.winfo_exists():
+            self.rigs_empty.configure(text=t("track.no_rigs"))
+        if self.total_title is not None and self.total_title.winfo_exists():
+            self.total_title.configure(text=t("track.total"))
         if not self.analyzing:
             self.btn.configure(text=t("b.analyze"))
             self.status.configure(text=t("st.ready"))
 
-    def fetch_pool_stats(self):
+    def add_rig(self):
         address = self.pool_addr.get().strip() or self.address.get().strip()
         pool = self.pool_menu.get()
-        if not address:
+        if not address or pool not in API_POOLS:
             self.status.configure(text=t("track.worker_hint"))
             return
-        if pool not in API_POOLS:
-            self.status.configure(text=t("track.worker_hint"))
+        if any(r["address"] == address and r["pool"] == pool for r in self.watch_rigs):
+            self.status.configure(text=t("track.rig_dup"))
             return
-        self._remember_rig(address, pool)
-        self._last_pool = pool
-        self._last_addr = address
-        self.pool_fetch_btn.configure(state="disabled")
-        threading.Thread(target=self._fetch_worker, args=(pool, address), daemon=True).start()
+        self.watch_rigs = (self.watch_rigs + [{"address": address, "pool": pool}])[:8]
+        self._save_watch_rigs()
+        self._remember_addr(address, pool)
+        self._render_rigs()
+        self.fetch_all()
 
-    def _remember_rig(self, address, pool):
-        rigs = [address] + [a for a in self.rig_addresses if a != address]
-        self.rig_addresses = rigs[:8]
+    def _remember_addr(self, address, pool):
+        addrs = [address] + [a for a in self.rig_addresses if a != address]
+        self.rig_addresses = addrs[:8]
         settings.set("rig_addresses", self.rig_addresses)
         settings.set("rig_last_pool", pool)
         self.pool_addr.configure(values=self.rig_addresses or [""])
         self.pool_addr.set(address)
 
-    def _remove_rig(self):
-        address = self.pool_addr.get().strip()
-        if not address:
-            return
-        self.rig_addresses = [a for a in self.rig_addresses if a != address]
-        settings.set("rig_addresses", self.rig_addresses)
-        self.pool_addr.configure(values=self.rig_addresses or [""])
-        self.pool_addr.set(self.rig_addresses[0] if self.rig_addresses else "")
+    def _remove_watch_rig(self, address, pool):
+        self.watch_rigs = [r for r in self.watch_rigs if not (r["address"] == address and r["pool"] == pool)]
+        self._save_watch_rigs()
+        self._render_rigs()
+        self._schedule_auto()
 
-    def _fetch_worker(self, pool, address):
+    def fetch_all(self):
+        if not self.watch_rigs:
+            self.status.configure(text=t("track.no_rigs"))
+            return
+        self.pool_fetch_btn.configure(state="disabled")
+        threading.Thread(target=self._fetch_all, daemon=True).start()
+
+    def _fetch_all(self):
         try:
-            worker = self.datalayer.get_worker_stats(pool, address)
-            if worker is None or not worker.ok:
-                self.status.configure(text=t("track.worker_none"))
-                for _, val in self.worker_vals.values():
-                    val.configure(text="--")
-            else:
-                imm = format_btcz(worker.immature, 4)
-                if worker.immature_estimated and worker.immature > 0:
-                    imm = f"{imm} {t('track.est')}"
-                self.worker_vals["track.balance"][1].configure(text=f"{format_btcz(worker.balance, 4)}")
-                self.worker_vals["track.immature"][1].configure(text=imm)
-                self.worker_vals["track.paid"][1].configure(text=f"{format_btcz(worker.paid, 2)}")
-                self.worker_vals["track.hashrate"][1].configure(
-                    text=f"~ {format_hashrate(worker.hashps)}")
-                self.worker_vals["track.workers"][1].configure(text=str(worker.workers))
+            totals = {1: 0.0, 2: 0.0, 3: 0.0, 4: 0.0, 5: 0}
+            any_ok = False
+            for rig in list(self.watch_rigs):
+                if self._fetch_one(rig, totals):
+                    any_ok = True
+            if any_ok:
+                self.total_vals[1].configure(text=format_btcz(totals[1], 4))
+                self.total_vals[2].configure(text=format_btcz(totals[2], 4))
+                self.total_vals[3].configure(text=format_btcz(totals[3], 2))
+                self.total_vals[4].configure(text=f"~ {format_hashrate(totals[4])}")
+                self.total_vals[5].configure(text=str(totals[5]))
                 stamp = datetime.now().strftime("%H:%M:%S")
-                self.status.configure(text=f"{pool} | {address}  ·  {stamp}")
+                self.status.configure(text=f"{len(self.watch_rigs)} rigs  ·  {stamp}")
+            else:
+                self.status.configure(text=t("track.worker_none"))
         except Exception as exc:
             self.status.configure(text=t("track.worker_error", e=exc))
         finally:
             self.pool_fetch_btn.configure(state="normal")
             self._schedule_auto()
+
+    def _fetch_one(self, rig, totals=None):
+        key = (rig["address"], rig["pool"])
+        try:
+            worker = self.datalayer.get_worker_stats(rig["pool"], rig["address"])
+        except Exception:
+            worker = None
+        row = self.rig_rows.get(key)
+        if worker is None or not worker.ok:
+            if row:
+                for lbl in row.values():
+                    lbl.configure(text="--")
+            return False
+        imm = format_btcz(worker.immature, 4)
+        if worker.immature_estimated and worker.immature > 0:
+            imm = f"{imm} {t('track.est')}"
+        if row:
+            row[1].configure(text=format_btcz(worker.balance, 4))
+            row[2].configure(text=imm)
+            row[3].configure(text=format_btcz(worker.paid, 2))
+            row[4].configure(text=f"~ {format_hashrate(worker.hashps)}")
+            row[5].configure(text=str(worker.workers))
+        if totals is not None:
+            totals[1] += worker.balance
+            totals[2] += worker.immature
+            totals[3] += worker.paid
+            totals[4] += worker.hashps
+            totals[5] += worker.workers
+        return True
 
     def _schedule_auto(self):
         if self._auto_job is not None:
@@ -379,14 +490,14 @@ class MiningTrackerModule(BaseModule):
             except Exception:
                 pass
             self._auto_job = None
-        if self.auto_switch.get() and self._last_pool and self._last_addr:
+        if self.auto_switch.get() and self.watch_rigs:
             self._auto_job = self.after(60000, self._auto_refetch)
 
     def _auto_refetch(self):
         self._auto_job = None
-        if not self.built or not self.auto_switch.get() or not self._last_pool or not self._last_addr:
+        if not self.built or not self.auto_switch.get() or not self.watch_rigs:
             return
-        threading.Thread(target=self._fetch_worker, args=(self._last_pool, self._last_addr), daemon=True).start()
+        threading.Thread(target=self._fetch_all, daemon=True).start()
 
     def _toggle_auto(self):
         if self.auto_switch.get():

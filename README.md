@@ -29,7 +29,7 @@ Prefer running from source? See [Installation](#installation) below.
 | Module | Status | Description |
 |---|---|---|
 | 📊 Dashboard | working | Home screen: network, your mining (today/7d/30d), profitability, market + quick access to every module |
-| ⛏️ Mining Tracker | working | Rewards received on a t1 address (per day / date range, CSV export) + live pool-side stats (balance, paid, hashrate, workers) for any address via z-nomp (SW Groupe, Dark Fiber Mines) and the zpool/yiimp wallet API (zpool.ca) |
+| ⛏️ Mining Tracker | working | Rewards received on a t1 address (per day / date range, CSV export) + live pool-side stats for **several rigs at once** (per-rig and total balance, paid, hashrate, workers) via z-nomp (SW Groupe, Dark Fiber Mines) and the zpool/yiimp wallet API (zpool.ca) |
 | 💰 Profitability | working | Revenue, cost, profit, price scenarios, break-even and hardware ROI |
 | 🌊 Pool Explorer | working | On-chain pool distribution (`minedBy`), live z-nomp pool stats, expected earnings for your hashrate, known-pools directory |
 | 🌐 Network Explorer | working | Network stats + latest blocks (with miner) |
