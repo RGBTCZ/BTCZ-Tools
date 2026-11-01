@@ -3,7 +3,7 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.5.1] - 2026-11-01
+## [1.6.0] - 2026-11-01
 
 Track several rigs live, zpool.ca joins the live panel, and HimPool is gone.
 
@@ -17,7 +17,7 @@ Track several rigs live, zpool.ca joins the live panel, and HimPool is gone.
 ### Technical
 - `ZpoolClient` gained a `get_worker()` reading `GET /api/walletEX?address=` (balances + `miners[]`); the worker dispatch in the data layer now routes pools carrying an `api_wallet` endpoint through it.
 
-[1.5.1]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.5.1
+[1.6.0]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.6.0
 
 ## [1.5.0] - 2026-09-26
 
