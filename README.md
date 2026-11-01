@@ -29,7 +29,7 @@ Prefer running from source? See [Installation](#installation) below.
 | Module | Status | Description |
 |---|---|---|
 | 📊 Dashboard | working | Home screen: network, your mining (today/7d/30d), profitability, market + quick access to every module |
-| ⛏️ Mining Tracker | working | Rewards received on a t1 address (per day / date range, CSV export) + live pool-side stats (balance, paid, hashrate, workers) for any t1 address via z-nomp API |
+| ⛏️ Mining Tracker | working | Rewards received on a t1 address (per day / date range, CSV export) + live pool-side stats (balance, paid, hashrate, workers) for any address via z-nomp (SW Groupe, Dark Fiber Mines) and the zpool/yiimp wallet API (zpool.ca) |
 | 💰 Profitability | working | Revenue, cost, profit, price scenarios, break-even and hardware ROI |
 | 🌊 Pool Explorer | working | On-chain pool distribution (`minedBy`), live z-nomp pool stats, expected earnings for your hashrate, known-pools directory |
 | 🌐 Network Explorer | working | Network stats + latest blocks (with miner) |
@@ -74,7 +74,7 @@ BTCZTools/
 - **Addresses** — `explorer.getbtcz.com` (primary) with `btcz.rocks` as fallback
 - **Price & ATH** — CoinGecko (`bitcoinz`, EUR + USD; `/coins` for all-time high)
 - **Circulating supply** — computed on-chain from the block height and the emission schedule (halving every 840 000 blocks), so it always matches the explorer without an extra request
-- **Live pool stats** — each pool's own API: z-nomp (`/api/stats`) for SW Groupe & Dark Fiber Mines, zpool/yiimp (`/api/currencies`) for zpool.ca (hashrate, workers, network share)
+- **Live pool stats** — each pool's own API: z-nomp (`/api/stats`) for SW Groupe & Dark Fiber Mines, zpool/yiimp (`/api/currencies` pool-wide + `/api/walletEX` per-address) for zpool.ca (hashrate, workers, network share, per-rig balance/paid)
 - **Updates** — GitHub Releases API (`/releases/latest`) checked once at launch
 
 The data layer automatically fails over to the backup source if the primary one is down.

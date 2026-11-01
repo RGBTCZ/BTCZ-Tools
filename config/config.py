@@ -38,11 +38,9 @@ POOL_WINDOW = 100
 NOMP_HASH_DIVISOR = 500000
 
 POOLS = [
-    {"name": "zpool.ca", "url": "https://zpool.ca", "api_currencies": "https://www.zpool.ca/api/currencies", "fee": 1.0, "scheme": "PROP", "min_pay": 10, "active": True, "tags": ["zpool"]},
+    {"name": "zpool.ca", "url": "https://zpool.ca", "api_currencies": "https://www.zpool.ca/api/currencies", "api_wallet": "https://www.zpool.ca/api/walletEX", "fee": 1.0, "scheme": "PROP", "min_pay": 10, "active": True, "tags": ["zpool"]},
     {"name": "SW Groupe", "url": "https://swgroupe.fr", "api_base": "https://swgroupe.fr/api", "fee": 0.5, "scheme": "PPLNS", "min_pay": None, "active": True, "tags": ["swgroupe", "swgroup"]},
     {"name": "Dark Fiber Mines", "url": "https://btcz.darkfibermines.com", "api_base": "https://btcz.darkfibermines.com/api", "fee": 1.0, "scheme": "PROP / SOLO", "min_pay": None, "active": True, "tags": ["darkfiber", "dfm"]},
-    {"name": "HimPool", "url": "https://himpool.com", "api_miningcore": "https://himpool.com/api/pools/bitcoinz", "fee": 1.0, "scheme": "PPLNS", "min_pay": 250, "active": False, "tags": ["himpool"]},
-    {"name": "HimPool (solo)", "url": "https://himpool.com", "api_miningcore": "https://himpool.com/api/pools/bitcoinz-solo", "fee": 2.0, "scheme": "SOLO", "min_pay": 250, "active": False, "tags": ["himpool-solo"]},
     {"name": "Pooly", "url": "https://pooly.ca", "fee": 1.5, "scheme": "PPLNS", "min_pay": 1, "active": False, "tags": ["pooly"]},
     {"name": "AikaPool", "url": "https://aikapool.com", "fee": 0.5, "scheme": "PROP / SOLO", "min_pay": 0.01, "active": False, "tags": ["aikapool"]},
     {"name": "ZeroPool", "url": "https://zeropool.io", "fee": 2.0, "scheme": "PPLNT / SOLO", "min_pay": None, "active": False, "tags": ["zeropool"]},
@@ -61,7 +59,7 @@ MOONSHOT_TARGETS_EUR = [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0]
 MILESTONES_EUR = [1000, 10000, 100000, 1000000]
 
 APP_NAME = "BTCZ Tools"
-APP_VERSION = "1.5.0"
+APP_VERSION = "1.6.0"
 
 GITHUB_REPO = "RGBTCZ/BTCZ-Tools"
 GITHUB_API_LATEST = "https://api.github.com/repos/RGBTCZ/BTCZ-Tools/releases/latest"

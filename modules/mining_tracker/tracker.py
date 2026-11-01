@@ -16,7 +16,7 @@ from app.utils.format import format_btcz, format_hashrate
 from config.config import MINING_THRESHOLD, POOLS
 from modules.base_module import BaseModule
 
-API_POOLS = [p["name"] for p in POOLS if p.get("api_base") or p.get("api_miningcore")]
+API_POOLS = [p["name"] for p in POOLS if p.get("api_base") or p.get("api_wallet") or p.get("api_miningcore")]
 
 ADDRESSES_FILE = DATA_DIR / "addresses.json"
 

@@ -363,6 +363,8 @@ class BTCZDataLayer:
         try:
             if target.get("api_base"):
                 worker = self.nomp.get_worker(target["api_base"], address)
+            elif target.get("api_wallet"):
+                worker = self.zpool.get_worker(target["api_wallet"], address)
             elif target.get("api_miningcore"):
                 scheme = str(target.get("scheme", "")).upper()
                 solo = "SOLO" in scheme and "PPLNS" not in scheme

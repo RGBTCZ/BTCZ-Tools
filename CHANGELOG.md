@@ -3,6 +3,27 @@
 All notable changes to BTCZ Tools are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-11-01
+
+zpool.ca joins the Mining Tracker's live pool-stats panel.
+
+### Added
+- **zpool.ca live worker stats** — the Mining Tracker's *My Live Pool Stats* panel now supports **zpool.ca** alongside SW Groupe and Dark Fiber Mines. Pick zpool.ca, enter the BTCZ address you mine with (your stratum username, e.g. mining with `password: c=BTCZ` pays you in BTCZ), and it reads your live **balance, immature, paid, hashrate and worker count** from zpool's wallet API. Balances are shown in BTCZ since `c=BTCZ` disables auto-exchange; the hashrate is the sum of your accepted Equihash(144,5) miners in Sol/s. zpool was already the dominant pool in the Pool Explorer distribution — now you can watch your own rig on it too.
+
+### Technical
+- `ZpoolClient` gained a `get_worker()` reading `GET /api/walletEX?address=` (balances + `miners[]`); the worker dispatch in the data layer now routes pools carrying an `api_wallet` endpoint through it.
+
+[1.6.0]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.6.0
+
+## [1.5.1] - 2026-11-01
+
+Drops HimPool, which has stopped mining BitcoinZ.
+
+### Removed
+- **HimPool delisted** — HimPool (`himpool.com`) no longer mines BitcoinZ, so both its collective (PPLNS) and solo entries have been removed from the pool registry. HimPool disappears everywhere it used to show: the Pool Explorer directory, the Mining Tracker's live pool-stats selector, and the Assistant's best-pool recommendation. If HimPool was your remembered pool in the Tracker, it now falls back to the first available pool automatically. The Miningcore API client stays in the codebase as reusable infrastructure, ready for any future Miningcore pool.
+
+[1.5.1]: https://github.com/RGBTCZ/BTCZ-Tools/releases/tag/v1.5.1
+
 ## [1.5.0] - 2026-09-26
 
 Multi-rig setup, and an Assistant that reads your real live hashrate.
